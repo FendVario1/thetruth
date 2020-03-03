@@ -4,10 +4,12 @@
 #include "config.h"
 #include "command.h"
 
-THE_TRUTH_COMMAND_CALLBACK(adduser_callback) {
+THE_TRUTH_COMMAND_CALLBACK(adduser_cb) {
 	int retVal;
 	(void) pointer;
 	(void) data;
+	(void) buffer;
+	(void) argv_eol;
 
 	weechat_printf(NULL, "in callback %s\n", __func__);
 
@@ -31,13 +33,16 @@ THE_TRUTH_COMMAND_CALLBACK(adduser_callback) {
 	return WEECHAT_RC_OK;
 }
 
-
 void the_truth_command_init() {
-	weechat_printf(NULL, "In command init");
 	weechat_hook_command("tadduser", 
 		N_("add new user credentials for jabber"),
 		N_("<Jabber_ID> <Jabber_Pass>"),
 		N_("Jabber_ID: JabberID to use"
 			"Jabber_Pass: Password for JabberID"),
-		NULL, &the_truth_command_adduser_callback, NULL, NULL);
+		NULL, &the_truth_command_adduser_cb, NULL, NULL);
+	weechat_hook_command("query",
+		N_("start chatting with a user"),
+		N_("<Jabber_ID>"),
+		N_("Jabber_ID: Jabber_ID of your chatpartner"),
+		NULL, &xmpp_command_cb, "query", NULL);
 }

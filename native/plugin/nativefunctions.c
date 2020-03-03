@@ -137,3 +137,9 @@ JNIEXPORT void JNICALL Java_eu_rationality_thetruth_Weechat_nicklist_1nick_1set
 	JRELEASESTRING(value, jval);
 	JRELEASESTRING(property, jproperty);
 }
+
+/*JNIEXPORT void JNICALL Java_eu_rationality_thetruth_Weechat_1initUser
+  (JNIEnv *env, jclass class, jstring juser, jstring jpassword)
+{
+
+}*/

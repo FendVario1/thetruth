@@ -1,6 +1,7 @@
 package eu.rationality.thetruth;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.ReconnectionListener;
@@ -24,6 +25,7 @@ import org.jivesoftware.smackx.carbons.CarbonManager;
 import org.jivesoftware.smackx.carbons.packet.CarbonExtension.Direction;
 import org.jivesoftware.smackx.ping.PingManager;
 import org.jxmpp.jid.EntityBareJid;
+import org.jxmpp.jid.parts.Localpart;
 import org.jxmpp.stringprep.XmppStringprepException;
 
 public class Server {
@@ -34,6 +36,7 @@ public class Server {
 	private String password;
 	private Integer port;
 	private ServerBuffer serverbuffer;
+	private ConcurrentHashMap<EntityBareJid, ChatBuffer> chatBuffers = new ConcurrentHashMap<>();
 
 	public Server(String domain, String user, String password, Integer port) {
 		super();
@@ -41,6 +44,10 @@ public class Server {
 		this.user = user;
 		this.password = password;
 		this.port = port;
+	}
+
+	public XMPPTCPConnection getCon() {
+		return con;
 	}
 
 	public String getDomain() {
@@ -69,6 +76,14 @@ public class Server {
 
 	public ServerBuffer getServerbuffer() {
 		return serverbuffer;
+	}
+
+	public ChatBuffer getChatBufferOrNull(EntityBareJid id) {
+		return chatBuffers.get(id);
+	}
+
+	public void removeChatBuffer(EntityBareJid id) {
+		chatBuffers.remove(id);
 	}
 
 	public String getJID() {
@@ -132,11 +147,19 @@ public class Server {
 		});
 		ChatManager.getInstanceFor(con).addIncomingListener(new IncomingChatMessageListener() {
 
-			@Override
+			@Override // TODO create Userbuffer etc.
 			public void newIncomingMessage(EntityBareJid from, Message message, Chat chat) {
 				Weechat.register_pending_operation(() -> {
-					serverbuffer.printMsgDateTags(System.currentTimeMillis() / 1000L, from.asEntityBareJidString(),
-							message.getBody(), "notify_private,log1");
+					Localpart lp = from.getLocalpartOrNull();
+					if (lp == null) {
+						serverbuffer.printMsgDateTags(System.currentTimeMillis() / 1000L, from.asEntityBareJidString(),
+								message.getBody(), "notify_private,log1");
+					}
+					else { // is User / MUC chat
+						ChatBuffer chatbuffer = getChat(from.asEntityBareJid());
+						chatbuffer.printMsgDateTags(System.currentTimeMillis() / 1000L, from.asEntityBareJidString(),
+								message.getBody(), "notify_private,log1");
+					}
 					return Weechat.WEECHAT_RC_OK;
 				});
 
@@ -213,6 +236,30 @@ public class Server {
 	public void send(EntityBareJid jid, String message) throws NotConnectedException, InterruptedException {
 		Chat chat = ChatManager.getInstanceFor(con).chatWith(jid);
 		chat.send(message);
+	}
+
+	public ChatBuffer getChat(EntityBareJid jid){
+		ChatBuffer chatbuffer = chatBuffers.get(jid);
+		if(chatbuffer == null) {
+			chatbuffer = openChat(jid);
+			if(chatbuffer == null) {
+				// !TODO logging
+				return null;
+			}
+		}
+		return chatbuffer;
+	}
+
+	private ChatBuffer openChat(EntityBareJid jid) {
+		ChatBuffer b;
+		try {
+			b = new ChatBuffer(getJID(), jid.asEntityBareJidString(), this);
+		} catch (Exception e) {
+			// !TODO error handling
+			return null;
+		}
+		chatBuffers.put(jid, b);
+		return b;
 	}
 
 	public void disconnect() {

@@ -44,7 +44,7 @@ void
 reset_fd_signaling()
 {
 #ifdef DEBUG
-	weechat_printf(0, "reset_fd_signaling");
+	weechat_printf(0, "reset_fd_signaling", "");
 #endif
 	// Drain the fd to prohibit future callbacks
 	// Socket is nonblocking -> simply use read
@@ -57,7 +57,7 @@ trigger_fd_signaling()
 {
 	// writing to fd_out triggers poll with POLLIN in weechat's hook_fd
 #ifdef DEBUG
-	weechat_printf(0, "trigger_fd_signaling");
+	weechat_printf(0, "trigger_fd_signaling", "");
 #endif
 	write(fd_out, "+", 1);
 }

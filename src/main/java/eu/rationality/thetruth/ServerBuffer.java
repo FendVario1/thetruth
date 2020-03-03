@@ -33,6 +33,7 @@ public class ServerBuffer extends Buffer {
 	
 	@Override
 	public int handleInput(String input) {
+		// TODO keep serverbuffer chat functionality?
 		String[] split = Pattern.compile(":\\s+").split(input, 2);
 		if (split.length != 2) {
 			printErr("Failed to determine receiver for message: " + input);
@@ -40,13 +41,11 @@ public class ServerBuffer extends Buffer {
 		}
 		try {
 			EntityBareJid jid = JidCreate.entityBareFrom(split[0]);
-			server.send(jid, split[1]);
-			printSelfMessage(split[0], split[1]);
+			ChatBuffer b = server.getChat(jid);
+			Weechat.buffer_set(b.nativeID(), "display", "auto");
+			b.handleInput(split[1]);
 		} catch (XmppStringprepException e) {
 			printErr(split[0] + " does not constitute a valid jid");
-			return Weechat.WEECHAT_RC_ERROR;
-		} catch (NotConnectedException | InterruptedException e) {
-			printErr("Failed to send specified message: " + e.toString());
 			return Weechat.WEECHAT_RC_ERROR;
 		}
 		return Weechat.WEECHAT_RC_OK;
@@ -62,6 +61,7 @@ public class ServerBuffer extends Buffer {
 			}
 			try {
 				EntityBareJid jid = JidCreate.entityBareFrom(args[1]);
+				server.getChat(jid);
 			} catch (XmppStringprepException e) {
 				printErr(args[1] + " does not constitute a valid jid");
 				return Weechat.WEECHAT_RC_ERROR;

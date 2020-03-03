@@ -10,7 +10,7 @@ public abstract class Buffer {
 		ACTION,
 	};
 	
-	protected long   nativeid;
+	protected long nativeid;
 	private String name;
 
 	public Long nativeID() {
@@ -37,7 +37,7 @@ public abstract class Buffer {
 		
 	}
 	
-	public int receiveCommand(String cmd, String args[]) {
+	public int receiveCommand(String cmd, String[] args) {
 		return Weechat.WEECHAT_RC_OK;
 	}
 	

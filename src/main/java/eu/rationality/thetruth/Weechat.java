@@ -1,7 +1,10 @@
 package eu.rationality.thetruth;
 
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 
 import org.jivesoftware.smack.SmackConfiguration;
@@ -44,6 +47,8 @@ class Weechat {
 	static final int WEECHAT_CONFIG_OPTION_UNSET_OK_RESET       =  1;
 	static final int WEECHAT_CONFIG_OPTION_UNSET_OK_REMOVED     =  2;
 	static final int WEECHAT_CONFIG_OPTION_UNSET_ERROR          = -1;
+
+	static ConcurrentHashMap<EntityBareJid, Server> server = new ConcurrentHashMap<>();
 
 
 	
@@ -141,30 +146,56 @@ class Weechat {
 		}
 	}
 
-	public static int initUser(String jidEnv, String pw) {
+	public static int initUser(String jidConf, String pw) {
 		print(0, "Java initUser");
 		SmackConfiguration.DEBUG = true;
 		try {
+			EntityBareJid jid;
 			final String user, domain;
-			if (jidEnv != null && JidUtil.isTypicalValidEntityBareJid(jidEnv)) {
-				EntityBareJid jid = JidCreate.entityBareFrom(jidEnv);
+			if (jidConf != null && JidUtil.isTypicalValidEntityBareJid(jidConf)) {
+				jid = JidCreate.entityBareFrom(jidConf);
 				user = jid.getLocalpart().toString();
 				domain = jid.getDomain().toString();
 			} else {
-				throw new Exception("Invalid JID specified from environment");
+				throw new Exception("Invalid JID specified from configuration");
 			}
-			Server[] servers = {
-					new Server(domain, user, pw, null),
-			};
+			Server s = new Server(domain, user, pw, null);
 
-			for(Server s: servers) {
-				s.connect();
-			}
+			server.put(jid, s);
+
+			s.connect();
 		} catch (Exception e) {
 			printerr(0, "Java Init failed");
 			return WEECHAT_RC_ERROR;
 		}
 
+		return WEECHAT_RC_OK;
+	}
+
+	public static int initiateChat(String ownJid, String partnerJid) {
+		print(0, "Java initiateChat");
+		try {
+			EntityBareJid oJid, pJid;
+			if (ownJid != null && JidUtil.isTypicalValidEntityBareJid(ownJid)) {
+				oJid = JidCreate.entityBareFrom(ownJid);
+			} else {
+				throw new Exception("Invalid ownJID specified");
+			}
+			if (partnerJid != null && JidUtil.isTypicalValidEntityBareJid(partnerJid)) {
+				pJid = JidCreate.entityBareFrom(partnerJid);
+			} else {
+				throw new Exception("Invalid partnerJID specified");
+			}
+			Server s = server.get(oJid);
+			ChatBuffer b = s.getChatBufferOrNull(pJid);
+			if (b == null) {
+				s.getChat(pJid);
+			}
+
+		} catch (Exception e) {
+			printerr(0, "Java initChat failed");
+			return WEECHAT_RC_ERROR;
+		}
 		return WEECHAT_RC_OK;
 	}
 
