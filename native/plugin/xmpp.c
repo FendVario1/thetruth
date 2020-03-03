@@ -10,7 +10,6 @@
 
 #include "xmpp.h"
 #include "signaling.h"
-#include "callbacks.h"
 #include "command.h"
 #include "config.h"
 
