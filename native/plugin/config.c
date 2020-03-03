@@ -1,3 +1,4 @@
+#include <string.h>
 
 #include <weechat-plugin.h>
 
@@ -14,7 +15,7 @@ struct t_config_option *the_truth_config_user_pass = NULL;
 
 
 
-
+// !TODO get user changes
 int the_truth_config_user_write_callback (const void *pointer, void *data, struct t_config_file *config_file,
 	const char *section_name) {
 	(void) pointer;
@@ -24,6 +25,8 @@ int the_truth_config_user_write_callback (const void *pointer, void *data, struc
 		return WEECHAT_CONFIG_WRITE_ERROR;
 	}
 	//if(!weechat_config_write_line(config_file, "user",  ))
+
+	return 0;
 }
 
 void the_truth_config_init(){
@@ -54,14 +57,14 @@ int the_truth_config_read() {
 	rc = weechat_config_read(the_truth_config_file);
 
 	if(rc != WEECHAT_CONFIG_READ_OK) {
-		weechat_printf("config could not be read%s\n", __func__);
+		weechat_printf(NULL, "config could not be read%s\n", __func__);
 	}
 	return rc;
 }
 
 void the_truth_config_write() {
 	if(!weechat_config_write(the_truth_config_file) == WEECHAT_CONFIG_WRITE_OK) {
-		weechat_printf("config write failed in %s\n", __func__);
+		weechat_printf(NULL, "config write failed in %s\n", __func__);
 	}
 }
 
@@ -83,7 +86,7 @@ void the_truth_initialize_user() {
 	const char *pass = weechat_config_string(the_truth_config_user_pass);
 
 	if(!strcmp(user, "") || !strcmp(pass, "")){
-		// TODO: weechat_printf("No user credentials have been found, please add a user with /tadduser.");
+		weechat_printf(NULL, "No user credentials have been found, please add a user with /tadduser.", "");
 		return;
 	}
 

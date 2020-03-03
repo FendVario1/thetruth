@@ -116,14 +116,14 @@ convert_chararray(int len, char **array) {
 	               len, (*env)->FindClass(env, "java/lang/String"), empty);
 	DELETEREF(empty);
 	if (javaarray == NULL) {
-		report_error("Failed to allocate object array");
+		report_error("Failed to allocate object array", "");
 		return javaarray;
 	}
 
 	for(int i = 0; i < len; i++) {
 		jstring str = convert_string(array[i]);
 		if (str == NULL) {
-			report_error("Failed to allocate object array element");
+			report_error("Failed to allocate object array element", "");
 			DELETEREF(javaarray);
 			return NULL;
 		}
@@ -184,7 +184,7 @@ xmpp_command_cb (const void *pointer, void *data,
 
 	jmethodID mid = (*env)->GetStaticMethodID(env, api_class, "command_callback", "(JLjava/lang/String;[Ljava/lang/String;)I");
 	if (mid == NULL) {
-		report_error("Failed to resolve Weechat.command_callback");
+		report_error("Failed to resolve Weechat.command_callback", "");
 		goto error_mid;
 
 	};
@@ -250,7 +250,7 @@ int xmpp_close_cb (const void *pointer,
 	jlong   bufferid = pointer_to_bufferid(buffer);
 	jmethodID mid    = (*env)->GetStaticMethodID(env, api_class, "buffer_close_callback", "(J)I");
 	if (mid == NULL) {
-		report_error("Failed to resolve method Weechat.buffer_close_callback");
+		report_error("Failed to resolve method Weechat.buffer_close_callback", "");
 		return WEECHAT_RC_ERROR;
 	}
 	jint ret = (*env)->CallStaticIntMethod(env, api_class, mid, bufferid);
@@ -267,6 +267,7 @@ xmpp_pending_operations_cb(const void *pointer, void *data, int fd)
 {
 	UNUSED(pointer);
 	UNUSED(data);
+	UNUSED(fd);
 
 	reset_fd_signaling();
 
@@ -275,7 +276,7 @@ xmpp_pending_operations_cb(const void *pointer, void *data, int fd)
 
 	jmethodID mid    = (*env)->GetStaticMethodID(env, api_class, "process_pending_operations", "()I");
 	if (mid == NULL) {
-		report_error("Failed to resolve method Weechat.process_pending_operations");
+		report_error("Failed to resolve method Weechat.process_pending_operations", "");
 		return WEECHAT_RC_ERROR;
 	}
 	jint ret = (*env)->CallStaticIntMethod(env, api_class, mid);
@@ -329,7 +330,7 @@ destroy_vm(void)
 	if (jvm) {
 		jmethodID mid = (*env)->GetStaticMethodID(env, api_class, "shutdown", "()V");
 		if (mid == NULL) {
-			report_error("Failed to resolve method Weechat.shutdown");
+			report_error("Failed to resolve method Weechat.shutdown", "");
 			return WEECHAT_RC_ERROR;
 		}
 		(*env)->CallStaticVoidMethod(env, api_class, mid);
@@ -339,7 +340,7 @@ destroy_vm(void)
 		}
 		jint ret = (*jvm)->DestroyJavaVM(jvm);
 		if (ret != JNI_OK) {
-			report_error("Error destroying VM");
+			report_error("Error destroying VM", "");
 			/* Report error */
 			return false;
 		}
@@ -354,7 +355,7 @@ weechat_plugin_test(void)
 {
 	jmethodID mid = (*env)->GetStaticMethodID(env, api_class, "test", "(I)V");
 	if (mid == NULL) {
-		report_error("Failed to resolve method Weechat.test");
+		report_error("Failed to resolve method Weechat.test", "");
 		return WEECHAT_RC_ERROR;
 	}
 	(*env)->CallStaticVoidMethod(env, api_class, mid, 100);
@@ -373,7 +374,7 @@ weechat_plugin_init (struct t_weechat_plugin *plugin,
 	(void) argv;
     weechat_plugin = plugin;
 
-	weechat_printf(NULL, "starting up\n");
+	weechat_printf(NULL, "starting up\n", "");
 
 	// Setting up signaling infrastructure
 	create_hook_fd_signaling();
@@ -409,7 +410,7 @@ weechat_plugin_init (struct t_weechat_plugin *plugin,
 		// Load the .so itself from Java so the JVM can find native methods
 		jmethodID mid = (*env)->GetStaticMethodID(env, api_class, "loadLibrary", "(Ljava/lang/String;)V");
 		if (mid == NULL) {
-			report_error("Failed to resolve method Weechat.loadLibrary");
+			report_error("Failed to resolve method Weechat.loadLibrary", "");
 			destroy_vm();
 			return WEECHAT_RC_ERROR;
 		}
@@ -433,7 +434,7 @@ weechat_plugin_init (struct t_weechat_plugin *plugin,
 		}
 	}
 
-	weechat_printf(NULL, "Running tests\n");
+	weechat_printf(NULL, "Running tests\n", "");
 
 	// TODO: maybe report errors from there:
 	the_truth_initialize_user();
@@ -473,7 +474,7 @@ weechat_plugin_end (struct t_weechat_plugin *plugin)
 
 int
 weechat_java_initialize_user (const char *user, const char* password) {
-	weechat_printf("in func %s\n", __func__);
+	weechat_printf(NULL, "in func %s\n", __func__);
 	jstring jid, pw;
 	jid = convert_string(user);
 	pw = convert_string(password);
@@ -481,7 +482,7 @@ weechat_java_initialize_user (const char *user, const char* password) {
 
 	jmethodID mid = (*env)->GetStaticMethodID(env, api_class, "initUser", "(Ljava/lang/String;Ljava/lang/String;)I");
 	if (mid == NULL) {
-		report_error("Failed to resolve method Weechat.initUser");
+		report_error("Failed to resolve method Weechat.initUser", "");
 		return WEECHAT_RC_ERROR;
 	}
 	jint ret = (*env)->CallStaticIntMethod(env, api_class, mid, jid, pw);
