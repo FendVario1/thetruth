@@ -10,6 +10,9 @@
 
 #include "xmpp.h"
 #include "signaling.h"
+#include "callbacks.h"
+#include "command.h"
+#include "config.h"
 
 #define xstr(s) str(s)
 #define str(s) #s
@@ -30,6 +33,8 @@ struct t_weechat_plugin *weechat_plugin = NULL;
 static JavaVM *jvm = NULL;
 static JNIEnv *env = NULL;
 static jclass api_class;
+
+
 
 static bool create_vm(const char *);
 static bool destroy_vm(void);
@@ -361,22 +366,6 @@ weechat_plugin_test(void)
 	return WEECHAT_RC_OK;
 }
 
-static int
-weechat_java_init(void)
-{
-	jmethodID mid = (*env)->GetStaticMethodID(env, api_class, "init", "()I");
-	if (mid == NULL) {
-		report_error("Failed to resolve method Weechat.init");
-		return WEECHAT_RC_ERROR;
-	}
-	jint ret = (*env)->CallStaticIntMethod(env, api_class, mid);
-	if (CHECK_EXCEPTION) {
-		REPORT_EXCEPTION();
-		return WEECHAT_RC_ERROR;
-	}
-	return ret;
-}
-
 int
 weechat_plugin_init (struct t_weechat_plugin *plugin,
                      int argc, char *argv[])
@@ -390,6 +379,17 @@ weechat_plugin_init (struct t_weechat_plugin *plugin,
 	// Setting up signaling infrastructure
 	create_hook_fd_signaling();
 
+	// Setting up weechat config // TODO: move to own file
+	the_truth_config_init();
+	the_truth_config_read();
+
+
+	// Setting up weechat commands
+	the_truth_command_init();
+
+
+
+
 	// Get the directory of the so (we assume the jar to be located there as well)
 	// and construct the classpath from this information
 	char filecopy[strlen(plugin->filename) + 1];
@@ -400,7 +400,6 @@ weechat_plugin_init (struct t_weechat_plugin *plugin,
 
 	weechat_printf(NULL, "Creating vm with classpath: %s\n", classpath);
 
-	//if (!create_vm(classpath)) {
 	if (!create_vm(classpath)) {
 		return WEECHAT_RC_ERROR;
 	}
@@ -437,8 +436,8 @@ weechat_plugin_init (struct t_weechat_plugin *plugin,
 
 	weechat_printf(NULL, "Running tests\n");
 
-	weechat_java_init();
-	// TODO: mayba report errors from there
+	// TODO: maybe report errors from there:
+	the_truth_initialize_user();
 
 	weechat_hook_command ("jdouble",
 	                      "Display two times a message "
@@ -460,6 +459,9 @@ weechat_plugin_end (struct t_weechat_plugin *plugin)
 
 	bool success = true;
 
+	// TODO: write changes automatically? the_truth_config_write();
+	the_truth_config_free();
+
 	destroy_hook_fd_signaling();
 	success = success && destroy_vm();
 
@@ -470,4 +472,25 @@ weechat_plugin_end (struct t_weechat_plugin *plugin)
 		return WEECHAT_RC_ERROR;
 }
 
+int
+weechat_java_initialize_user (const char *user, const char* password) {
+	weechat_printf("in func %s\n", __func__);
+	jstring jid, pw;
+	jid = convert_string(user);
+	pw = convert_string(password);
+
+
+	jmethodID mid = (*env)->GetStaticMethodID(env, api_class, "initUser", "(Ljava/lang/String;Ljava/lang/String;)I");
+	if (mid == NULL) {
+		report_error("Failed to resolve method Weechat.initUser");
+		return WEECHAT_RC_ERROR;
+	}
+	jint ret = (*env)->CallStaticIntMethod(env, api_class, mid, jid, pw);
+	if (CHECK_EXCEPTION) {
+		REPORT_EXCEPTION();
+		return WEECHAT_RC_ERROR;
+	}
+	return ret;
+
+}
 

@@ -1,5 +1,6 @@
 package eu.rationality.thetruth;
 
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Supplier;
 
@@ -131,9 +132,6 @@ class Weechat {
 		print(bufferid, "after reg message");
 	}
 
-	// initialization related
-	native static void initialize_user();
-
 	public static void shutdown() {
 		Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
 		for(Thread t : threadSet) {
@@ -142,15 +140,11 @@ class Weechat {
 			t.interrupt();
 		}
 	}
-	
-	public static int init() {// !TODO: remove 
-		print(0, "Java Init");
+
+	public static int initUser(String jidEnv, String pw) {
+		print(0, "Java initUser");
 		SmackConfiguration.DEBUG = true;
 		try {
-			// Todo: parse from cfg
-			String pw = System.getenv("TRUTH_PASS");
-			String jidEnv = System.getenv("TRUTH_JID");
-
 			final String user, domain;
 			if (jidEnv != null && JidUtil.isTypicalValidEntityBareJid(jidEnv)) {
 				EntityBareJid jid = JidCreate.entityBareFrom(jidEnv);
@@ -162,7 +156,7 @@ class Weechat {
 			Server[] servers = {
 					new Server(domain, user, pw, null),
 			};
-			
+
 			for(Server s: servers) {
 				s.connect();
 			}
@@ -170,7 +164,7 @@ class Weechat {
 			printerr(0, "Java Init failed");
 			return WEECHAT_RC_ERROR;
 		}
-		
+
 		return WEECHAT_RC_OK;
 	}
 

@@ -69,6 +69,14 @@ JNIEXPORT void JNICALL Java_Main_nicklist_1remove_1nick
 JNIEXPORT void JNICALL Java_Main_nicklist_1remove_1all
   (JNIEnv *, jclass, jlong);
 
+/*
+ * Class:     Main
+ * Method:    initialize_user
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_Main_initialize_1user
+  (JNIEnv *, jclass);
+
 #ifdef __cplusplus
 }
 #endif

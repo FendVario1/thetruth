@@ -49,4 +49,5 @@ int xmpp_input_cb (const void *, void *, struct t_gui_buffer *, const char *);
 int xmpp_command_cb (const void *, void *, struct t_gui_buffer *, int, char **, char **);
 int xmpp_close_cb (const void *, void *, struct t_gui_buffer *);
 int xmpp_pending_operations_cb(const void *, void *, int);
+int weechat_java_initialize_user (const char *, const char*);
 #endif
