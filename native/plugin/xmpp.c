@@ -323,6 +323,16 @@ static bool
 destroy_vm(void)
 {
 	if (jvm) {
+		jmethodID mid = (*env)->GetStaticMethodID(env, api_class, "shutdown", "()V");
+		if (mid == NULL) {
+			report_error("Failed to resolve method Weechat.shutdown");
+			return WEECHAT_RC_ERROR;
+		}
+		(*env)->CallStaticVoidMethod(env, api_class, mid);
+		if (CHECK_EXCEPTION) {
+			REPORT_EXCEPTION();
+			return WEECHAT_RC_ERROR;
+		}
 		jint ret = (*jvm)->DestroyJavaVM(jvm);
 		if (ret != JNI_OK) {
 			report_error("Error destroying VM");

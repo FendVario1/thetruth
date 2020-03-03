@@ -130,8 +130,20 @@ class Weechat {
 		register_pending_operation(v);
 		print(bufferid, "after reg message");
 	}
+
+	// initialization related
+	native static void initialize_user();
+
+	public static void shutdown() {
+		Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+		for(Thread t : threadSet) {
+			if(t.equals(Thread.currentThread()))
+				continue;
+			t.interrupt();
+		}
+	}
 	
-	public static int init() {
+	public static int init() {// !TODO: remove 
 		print(0, "Java Init");
 		SmackConfiguration.DEBUG = true;
 		try {
