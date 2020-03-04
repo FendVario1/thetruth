@@ -23,7 +23,7 @@ public class BufferManager {
 	}
 	
 	public void register(Buffer b) {
-		id2buffer.put(b.nativeID(), b);
+		id2buffer.put(b.getNativeId(), b);
 	}
 	
 	public void deregister(Long nativeid) {

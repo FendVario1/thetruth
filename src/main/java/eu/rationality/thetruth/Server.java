@@ -23,6 +23,9 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.carbons.CarbonCopyReceivedListener;
 import org.jivesoftware.smackx.carbons.CarbonManager;
 import org.jivesoftware.smackx.carbons.packet.CarbonExtension.Direction;
+import org.jivesoftware.smackx.muc.MultiUserChat;
+import org.jivesoftware.smackx.muc.MultiUserChatManager;
+import org.jivesoftware.smackx.muc.RoomInfo;
 import org.jivesoftware.smackx.ping.PingManager;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.parts.Localpart;
@@ -36,7 +39,8 @@ public class Server {
 	private String password;
 	private Integer port;
 	private ServerBuffer serverbuffer;
-	private ConcurrentHashMap<EntityBareJid, ChatBuffer> chatBuffers = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<EntityBareJid, ChatBuffer> chatBuffer = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<EntityBareJid, MucBuffer> mucBuffer = new ConcurrentHashMap<>();
 
 	public Server(String domain, String user, String password, Integer port) {
 		super();
@@ -78,12 +82,11 @@ public class Server {
 		return serverbuffer;
 	}
 
-	public ChatBuffer getChatBufferOrNull(EntityBareJid id) {
-		return chatBuffers.get(id);
-	}
-
 	public void removeChatBuffer(EntityBareJid id) {
-		chatBuffers.remove(id);
+		chatBuffer.remove(id);
+	}
+	public void removeFromMucBuffer(EntityBareJid id) {
+		mucBuffer.remove(id);
 	}
 
 	public String getJID() {
@@ -231,6 +234,8 @@ public class Server {
 		presence.setStatus("Started up and running");
 		// Send the stanza (assume we have an XMPPConnection instance called "con").
 		con.sendStanza(presence);
+
+		// TODO connect to Bookmarked Users?
 	}
 	
 	public void send(EntityBareJid jid, String message) throws NotConnectedException, InterruptedException {
@@ -239,7 +244,7 @@ public class Server {
 	}
 
 	public ChatBuffer getChat(EntityBareJid jid){
-		ChatBuffer chatbuffer = chatBuffers.get(jid);
+		ChatBuffer chatbuffer = chatBuffer.get(jid);
 		if(chatbuffer == null) {
 			chatbuffer = openChat(jid);
 			if(chatbuffer == null) {
@@ -258,8 +263,38 @@ public class Server {
 			// !TODO error handling
 			return null;
 		}
-		chatBuffers.put(jid, b);
+		chatBuffer.put(jid, b);
 		return b;
+	}
+
+	public MucBuffer getMuc(EntityBareJid jid, String nickname, String password) {
+		// discover room
+		MucBuffer b = mucBuffer.get(jid);
+		if(b == null) {
+			b = openMuc(jid, nickname, password);
+			if (b == null) {
+				// !TODO logging
+				return null;
+			}
+		}
+		return b;
+	}
+
+	private MucBuffer openMuc(EntityBareJid jid, String nickname, String password) {
+		MucBuffer b;
+		String servername;
+		MultiUserChatManager cm = MultiUserChatManager.getInstanceFor(con);
+		try {
+			// TODO if(password == null) {
+			RoomInfo roomInfo = cm.getRoomInfo(jid);
+			// get roomInfo works only on password unprotected Chats; !TODO get info for password protected rooms & then update buffername
+			b = new MucBuffer(jid.asEntityBareJidString(), roomInfo.getName(), nickname, password, this);
+		} catch (Exception e) {
+			// !TODO error handling
+			return null;
+		}
+		mucBuffer.put(jid, b);
+		return null;//b;
 	}
 
 	public void disconnect() {

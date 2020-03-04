@@ -12,13 +12,12 @@ import org.jxmpp.stringprep.XmppStringprepException;
 import java.util.regex.Pattern;
 
 public class ChatBuffer extends Buffer {
-	// TODO own class for MUC? -> maybe do not show EntityBareJid name of message sender
 	private String jidStringFrom, jidStringTo;
 	private EntityBareJid jidTo;
 	private Server server;
 
 	public ChatBuffer(String jidStringFrom, String jidStringTo, Server server) throws WeechatCallException, XmppStringprepException {
-		super(jidStringTo + " (" + jidStringFrom + ")");
+		super(jidStringTo); // + " (" + jidStringFrom + ")"
 
 		jidTo = JidCreate.from(jidStringTo).asEntityBareJidIfPossible();
 		Weechat.buffer_set(nativeid, "title", "Chat: " + jidStringTo + " (From: " + jidStringFrom + ")");
@@ -43,17 +42,18 @@ public class ChatBuffer extends Buffer {
 		return Weechat.WEECHAT_RC_OK;
 	}
 
-	/* TODO: do not show nickname in personalChat
 	@Override
 	public void printMsgDateTags(long time, String sender, String data, String tags) {
-		Weechat.print_date_tags(nativeid, time, tags + ",nick_"+sender+",host_"+sender, sender + "\t" + data);
-	}*/
+		String local = sender.split("@", 2)[0];
+		Weechat.print_date_tags(nativeid, time, tags + ",nick_"+sender+",host_"+sender, local + "\t" + data);
+	}
 
 	@Override
 	public int receiveCommand(String cmd, String[] args) {
 		switch(cmd) {
 			case "close":
-				closeCallback();
+				BufferManager bm = BufferManager.getinstance();
+				bm.deregister(nativeid);
 				break;
 		}
 		return super.receiveCommand(cmd, args);
@@ -62,7 +62,7 @@ public class ChatBuffer extends Buffer {
 	@Override
 	public void closeCallback() {
 		super.closeCallback();
-		server.removeChatBuffer(jidTo);
+		server.removeChatBuffer(jidTo); // TODO close in smack??
 		Weechat.buffer_close_callback(nativeid);
 	}
 }

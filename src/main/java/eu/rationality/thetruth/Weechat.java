@@ -186,12 +186,7 @@ class Weechat {
 			} else {
 				throw new Exception("Invalid partnerJID specified");
 			}
-			Server s = server.get(oJid);
-			ChatBuffer b = s.getChatBufferOrNull(pJid);
-			if (b == null) {
-				s.getChat(pJid);
-			}
-
+			server.get(oJid).getChat(pJid);
 		} catch (Exception e) {
 			printerr(0, "Java initChat failed");
 			return WEECHAT_RC_ERROR;

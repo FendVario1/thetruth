@@ -45,4 +45,11 @@ void the_truth_command_init() {
 		N_("<Jabber_ID>"),
 		N_("Jabber_ID: Jabber_ID of your chatpartner"),
 		NULL, &xmpp_command_cb, "query", NULL);
+	weechat_hook_command("join",
+		N_("join a MUC chat"),
+		N_("<Jabber_ID> <Nickname> [Password]"),
+		N_("Jabber_ID: JabberID of MUC"
+			"Nickname: Your nickname on the server"
+			"Password: the servers password"),
+		NULL, &xmpp_command_cb, "join", NULL);
 }

@@ -2,7 +2,6 @@ package eu.rationality.thetruth;
 
 import java.util.regex.Pattern;
 
-import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.roster.Roster;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
@@ -34,6 +33,7 @@ public class ServerBuffer extends Buffer {
 	@Override
 	public int handleInput(String input) {
 		// TODO keep serverbuffer chat functionality?
+		// probably remove, as it can not support MUC chats
 		String[] split = Pattern.compile(":\\s+").split(input, 2);
 		if (split.length != 2) {
 			printErr("Failed to determine receiver for message: " + input);
@@ -42,7 +42,7 @@ public class ServerBuffer extends Buffer {
 		try {
 			EntityBareJid jid = JidCreate.entityBareFrom(split[0]);
 			ChatBuffer b = server.getChat(jid);
-			Weechat.buffer_set(b.nativeID(), "display", "auto");
+			Weechat.buffer_set(b.getNativeId(), "display", "auto");
 			b.handleInput(split[1]);
 		} catch (XmppStringprepException e) {
 			printErr(split[0] + " does not constitute a valid jid");
@@ -68,6 +68,21 @@ public class ServerBuffer extends Buffer {
 			}
 			break;
 		case "join":
+			if (args.length < 3 || args.length > 4) {
+				printErr("Join expects three parameters: /join <jid> <nickname> [password]");
+				return Weechat.WEECHAT_RC_ERROR;
+			}
+			try {
+				String pass = null;
+				if (args.length == 4) {
+					pass = args[3];
+				}
+				EntityBareJid jid = JidCreate.entityBareFrom(args[1]);
+				server.getMuc(jid, args[2], pass);
+			} catch (XmppStringprepException e) {
+				printErr(args[1] + " does not constitute a valid jid");
+				return Weechat.WEECHAT_RC_ERROR;
+			}
 			break;
 		}
 		return super.receiveCommand(cmd, args);

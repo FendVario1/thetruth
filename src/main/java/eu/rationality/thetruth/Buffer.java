@@ -13,20 +13,20 @@ public abstract class Buffer {
 	protected long nativeid;
 	private String name;
 
-	public Long nativeID() {
+	public Long getNativeId() {
 		return nativeid;
 	}
 
 	public void print(String str) {
-		Weechat.print(nativeID(), str);
+		Weechat.print(getNativeId(), str);
 	}
 	
 	public void printErr(String str) {
-		Weechat.print_prefix(nativeID(), "error", str);
+		Weechat.print_prefix(getNativeId(), "error", str);
 	}
 	
 	public void print_prefix(String prefix, String msg) {
-		Weechat.print_prefix(nativeID(), prefix, msg);
+		Weechat.print_prefix(getNativeId(), prefix, msg);
 	}
 	
 	public void printMsgDateTags(long time, String sender, String data, String tags) {
