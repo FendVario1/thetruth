@@ -1,6 +1,9 @@
 package eu.rationality.thetruth;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.jivesoftware.smack.ConnectionListener;
@@ -20,6 +23,8 @@ import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterListener;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jivesoftware.smackx.bookmarks.BookmarkManager;
+import org.jivesoftware.smackx.bookmarks.BookmarkedConference;
 import org.jivesoftware.smackx.carbons.CarbonCopyReceivedListener;
 import org.jivesoftware.smackx.carbons.CarbonManager;
 import org.jivesoftware.smackx.carbons.packet.CarbonExtension.Direction;
@@ -235,7 +240,11 @@ public class Server {
 		// Send the stanza (assume we have an XMPPConnection instance called "con").
 		con.sendStanza(presence);
 
-		// TODO connect to Bookmarked Users?
+		BookmarkManager bm = BookmarkManager.getBookmarkManager(con);
+		List<BookmarkedConference> bookmarks = bm.getBookmarkedConferences();
+		for (BookmarkedConference b : bookmarks ) {
+			getMuc(b.getJid(), b.getNickname().toString(), b.getPassword());
+		}
 	}
 	
 	public void send(EntityBareJid jid, String message) throws NotConnectedException, InterruptedException {
@@ -267,17 +276,15 @@ public class Server {
 		return b;
 	}
 
-	public MucBuffer getMuc(EntityBareJid jid, String nickname, String password) {
+	public void getMuc(EntityBareJid jid, String nickname, String password) {
 		// discover room
 		MucBuffer b = mucBuffer.get(jid);
 		if(b == null) {
 			b = openMuc(jid, nickname, password);
 			if (b == null) {
 				// !TODO logging
-				return null;
 			}
 		}
-		return b;
 	}
 
 	private MucBuffer openMuc(EntityBareJid jid, String nickname, String password) {
