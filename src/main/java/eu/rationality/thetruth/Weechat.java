@@ -118,29 +118,6 @@ class Weechat {
 		}
 	}
 
-	public static void test(int a) { // !TODO do we still need this?
-		print(0, "Test " + a);
-		printerr(0, "This is an example error");
-		try {
-			print(0, Integer.toString(a));
-		} catch (Exception e) {
-			System.err.println("Exception occured: " + e);
-		}
-		print(0, "Hello from jar file");
-		print(0, "Afternative " + a);
-		long bufferid = buffer_new("test");
-		buffer_set(bufferid, "display", "auto");
-		buffer_set(bufferid, "title", "jabber test buffer");
-		buffer_set(bufferid, "nicklist", "1");
-		long nickid = nicklist_add_nick(bufferid, "hugo", "blue", "@+");
-		print(bufferid, "Hello world to buffer " + bufferid);
-		print(bufferid, "added nick with id " + nickid);
-		print(bufferid, "new message");
-		Supplier<Integer> v = () -> {print(0, "Hello from pending operation"); return WEECHAT_RC_OK;};
-		register_pending_operation(v);
-		print(bufferid, "after reg message");
-	}
-
 	public static void shutdown() {
 		Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
 		for(Thread t : threadSet) {
