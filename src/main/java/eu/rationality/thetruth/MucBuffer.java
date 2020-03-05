@@ -10,6 +10,7 @@ import org.jivesoftware.smackx.disco.ServiceDiscoveryManager;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatException;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
+import org.jivesoftware.smackx.muc.Occupant;
 import org.jxmpp.jid.DomainFullJid;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
@@ -17,6 +18,7 @@ import org.jxmpp.jid.parts.Localpart;
 import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
 
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,6 +28,7 @@ public class MucBuffer extends Buffer  {
     private Server localServer;
     private MultiUserChat chat;
     private MessageListener messageListener;
+    private Occupants occupantsList;
 
     private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
@@ -74,8 +77,6 @@ public class MucBuffer extends Buffer  {
         messageListener = new MessageListener() {
             @Override
             public void processMessage(Message message) {
-                // remove "null" (composing) messages: // !TODO
-                Message.Type type = message.getType();
                 if(!MessageWithBodiesFilter.INSTANCE.accept(message)) {
                     return;
                 }
@@ -92,10 +93,13 @@ public class MucBuffer extends Buffer  {
             }
         };
         chat.addMessageListener(messageListener);
-        // TODO member listener
         Weechat.buffer_set(nativeid, "title", "Chatroom: " + chat.getRoom()); // TODO get other roomname?
         Weechat.buffer_set(nativeid, "nicklist", "1");
         Weechat.buffer_set(nativeid, "display", "auto");
+
+        this.occupantsList = new Occupants(this, chat);
+        chat.addParticipantListener(occupantsList);
+        chat.addParticipantStatusListener(occupantsList);
     }
 
     @Override
@@ -126,8 +130,11 @@ public class MucBuffer extends Buffer  {
     @Override
     public void closeCallback() {
         super.closeCallback();
+        occupantsList.remove();
         localServer.removeFromMucBuffer(chatJid);
         chat.removeMessageListener(messageListener);
+        chat.removeParticipantListener(occupantsList);
+        chat.removeParticipantStatusListener(occupantsList);
         Weechat.buffer_close_callback(nativeid);
         try {
             chat.leave();
