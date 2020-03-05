@@ -52,7 +52,7 @@ public abstract class Buffer {
 		BufferManager.getinstance().register(this);
 	}
 	
-	private static long createNativeBuffer(String name) throws WeechatCallException {
+	static long createNativeBuffer(String name) throws WeechatCallException {
 		long nativeid = Weechat.buffer_new(name);
 		if (nativeid == 0) {
 			throw new Weechat.WeechatCallException();

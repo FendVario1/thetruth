@@ -60,7 +60,7 @@ public class BufferManagerTest {
         }
     }
 
-    private static final class DummyBuffer extends Buffer {
+    static final class DummyBuffer extends Buffer {
 
         public DummyBuffer() throws Weechat.WeechatCallException {  //TODO do whatever's necessary
             super("test");

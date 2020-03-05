@@ -3,11 +3,14 @@ JAR_FILE := thetruth-$(THE_TRUTH_VERSION)-all.jar
 JAR:=build/libs/$(JAR_FILE)
 SO:=native/plugin/xmpp.so
 
-.PHONY: all run $(SO) $(JAR)
+.PHONY: all run test $(SO) $(JAR)
 
 all: $(SO) $(JAR)
 
 run: all weechat/plugins/$(JAR_FILE)
+	LD_LIBRARY_PATH="${JAVA_HOME}/lib/server" weechat -d ./weechat
+
+test: all weechat/plugins/$(JAR_FILE)
 	LD_LIBRARY_PATH="${JAVA_HOME}/lib/server" weechat -d ./weechat
 
 native/plugin/java/eu_rationality_thetruth_Weechat.h: src/main/java/eu/rationality/thetruth/Weechat.java $(JAR)
@@ -17,7 +20,7 @@ $(SO): native/plugin/java/eu_rationality_thetruth_Weechat.h
 	make -C ./native/plugin
 
 $(JAR):
-	gradle shadowJar
+	gradle shadowJar -q testFlavor
 
 weechat/plugins/$(JAR_FILE): $(JAR)
 	ln -frs $< $@
