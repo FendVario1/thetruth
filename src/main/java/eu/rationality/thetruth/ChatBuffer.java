@@ -9,12 +9,16 @@ import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.stringprep.XmppStringprepException;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 public class ChatBuffer extends Buffer {
 	private String jidStringFrom, jidStringTo;
 	private EntityBareJid jidTo;
 	private Server server;
+
+	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
 	public ChatBuffer(String jidStringFrom, String jidStringTo, Server server) throws WeechatCallException, XmppStringprepException {
 		super(jidStringTo); // + " (" + jidStringFrom + ")"
@@ -35,8 +39,8 @@ public class ChatBuffer extends Buffer {
 			Chat chat = ChatManager.getInstanceFor(con).chatWith(jidTo);
 			chat.send(input);
 			printMsgDateTags(0, "me", input, "notify_msg,self_msg,log1");
-		} catch (Exception e) {
-			// TODO Logging
+		} catch (SmackException.NotConnectedException | InterruptedException e) {
+			LOGGER.log(Level.WARNING, "could not handle outbound message", e);
 			return Weechat.WEECHAT_RC_ERROR;
 		}
 		return Weechat.WEECHAT_RC_OK;

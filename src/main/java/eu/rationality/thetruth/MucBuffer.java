@@ -1,12 +1,16 @@
 package eu.rationality.thetruth;
 
 import org.jivesoftware.smack.MessageListener;
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.filter.MessageWithBodiesFilter;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.disco.ServiceDiscoveryManager;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatException;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
+import org.jxmpp.jid.DomainFullJid;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Localpart;
@@ -14,12 +18,16 @@ import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
 
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MucBuffer extends Buffer  {
     private EntityBareJid chatJid;
     private Server localServer;
     private MultiUserChat chat;
     private MessageListener messageListener;
+
+    private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
     public MucBuffer (String jidStringTo, String servername, String nickname, String password,
                       Server localServer) throws Weechat.WeechatCallException, XmppStringprepException {
@@ -31,8 +39,9 @@ public class MucBuffer extends Buffer  {
             if (!ret) {
                 Weechat.print(localServer.getServerbuffer().getNativeId(), jidStringTo + " is not a valid MUC!");
             }
-        } catch (Exception e) {
-            // TODO logging
+        } catch (SmackException.NoResponseException | XMPPException.XMPPErrorException |
+                SmackException.NotConnectedException | InterruptedException e) {
+            LOGGER.log(Level.WARNING, "could not get supported Features of MUC");
             closeCallback();
             return;
         }
@@ -43,9 +52,9 @@ public class MucBuffer extends Buffer  {
 
         MultiUserChatManager cm = MultiUserChatManager.getInstanceFor(localServer.getCon());
         chat = cm.getMultiUserChat(chatJid);
-        // TODO get user is already joined?
+        // get user is already joined?
         Set<EntityBareJid> joinedMucs = cm.getJoinedRooms();
-        if (!joinedMucs.contains(chatJid)) { // TODO does this work?
+        if (!joinedMucs.contains(chatJid)) {
             try {
                 Resourcepart name = Resourcepart.fromOrNull(nickname);
                 if (password == null) {
@@ -55,8 +64,9 @@ public class MucBuffer extends Buffer  {
                 }
             } catch (MultiUserChatException.NotAMucServiceException e) {
                 Weechat.print(localServer.getServerbuffer().nativeid, jidStringTo + " is not a valid MUC!");
-            } catch (Exception e) {
-                // TODO logging
+            } catch (XMPPException.XMPPErrorException | InterruptedException | SmackException.NoResponseException |
+                    SmackException.NotConnectedException e) {
+                LOGGER.log(Level.WARNING, "could not join MUC " + jidStringTo, e);
                 closeCallback();
                 return;
             }
@@ -64,14 +74,19 @@ public class MucBuffer extends Buffer  {
         messageListener = new MessageListener() {
             @Override
             public void processMessage(Message message) {
-                // remove "null" messages:
-                // if (message.getBody().equals("null")) return;
-
-                // TODO filter own messages!
+                // remove "null" (composing) messages: // !TODO
+                Message.Type type = message.getType();
+                if(!MessageWithBodiesFilter.INSTANCE.accept(message)) {
+                    return;
+                }
+                String tll = message.getFrom().getResourceOrEmpty().toString();;
+                if(tll.equals("")) {
+                    tll= message.getFrom().asDomainFullJidIfPossible().toString();
+                }
+                final String username = tll;
                 Weechat.register_pending_operation(() -> {
                     printMsgDateTags(System.currentTimeMillis() / 1000L,
-                            message.getFrom().asEntityBareJidIfPossible().asEntityBareJidString(),
-                            message.getBody(), "notify_private,log1");
+                            username, message.getBody(), "notify_private,log1");
                     return Weechat.WEECHAT_RC_OK;
                 });
             }
@@ -89,9 +104,9 @@ public class MucBuffer extends Buffer  {
         try{
             MultiUserChat chat = MultiUserChatManager.getInstanceFor(con).getMultiUserChat(chatJid);
             chat.sendMessage(input);
-            printMsgDateTags(0, "me", input, "notify_msg,self_msg,log1");
-        } catch (Exception e) {
-            // TODO Logging
+            // printMsgDateTags(0, "me", input, "notify_msg,self_msg,log1");
+        } catch (SmackException.NotConnectedException | InterruptedException e) {
+            LOGGER.log(Level.WARNING, "could not handle outbound MUC message", e);
             return Weechat.WEECHAT_RC_ERROR;
         }
         return Weechat.WEECHAT_RC_OK;
@@ -116,8 +131,8 @@ public class MucBuffer extends Buffer  {
         Weechat.buffer_close_callback(nativeid);
         try {
             chat.leave();
-        } catch (Exception e) {
-            // TODO logging
+        } catch (SmackException.NotConnectedException | InterruptedException e) {
+            LOGGER.log(Level.WARNING, "could not leave chat " + chatJid, e);
         }
     }
 }

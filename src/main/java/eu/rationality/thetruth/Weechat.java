@@ -1,14 +1,16 @@
 package eu.rationality.thetruth;
 
+import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jivesoftware.smack.SmackConfiguration;
-import org.jivesoftware.smack.util.StringUtils;
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.XMPPException;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.util.JidUtil;
@@ -49,6 +51,7 @@ class Weechat {
 	static final int WEECHAT_CONFIG_OPTION_UNSET_ERROR          = -1;
 
 	static ConcurrentHashMap<EntityBareJid, Server> server = new ConcurrentHashMap<>();
+	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
 
 	
@@ -85,7 +88,8 @@ class Weechat {
 	public static int buffer_input_callback(long bufferid, String data) {
 		Buffer b = BufferManager.getinstance().byid(bufferid);
 		if (b == null) {
-			printerr(0, "Input callback received for buffer " + Long.toHexString(bufferid) + " which is not managed by the plugin");
+			printerr(0, "Input callback received for buffer " + Long.toHexString(bufferid) +
+					" which is not managed by the plugin");
 			return WEECHAT_RC_ERROR;
 		}
 		return b.handleInput(data);
@@ -114,7 +118,7 @@ class Weechat {
 		}
 	}
 
-	public static void test(int a) {
+	public static void test(int a) { // !TODO do we still need this?
 		print(0, "Test " + a);
 		printerr(0, "This is an example error");
 		try {
@@ -147,7 +151,7 @@ class Weechat {
 	}
 
 	public static int initUser(String jidConf, String pw) {
-		print(0, "Java initUser");
+		LOGGER.info("Java initUser");
 		SmackConfiguration.DEBUG = true;
 		try {
 			EntityBareJid jid;
@@ -157,34 +161,38 @@ class Weechat {
 				user = jid.getLocalpart().toString();
 				domain = jid.getDomain().toString();
 			} else {
-				throw new Exception("Invalid JID specified from configuration");
+				LOGGER.warning("Invalid JID specified from configuration");
+				return WEECHAT_RC_ERROR;
 			}
 			Server s = new Server(domain, user, pw, null);
 
 			server.put(jid, s);
 
 			s.connect();
-		} catch (Exception e) {
-			printerr(0, "Java Init failed");
+		} catch (WeechatCallException | IOException | SmackException | XMPPException | InterruptedException e) {
+			LOGGER.log(Level.SEVERE, "Java Init failed", e);
 			return WEECHAT_RC_ERROR;
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Unexpected Error in Java Init", e);
 		}
-
 		return WEECHAT_RC_OK;
 	}
 
 	public static int initiateChat(String ownJid, String partnerJid) {
-		print(0, "Java initiateChat");
+		LOGGER.info("Java initiated");
 		try {
 			EntityBareJid oJid, pJid;
 			if (ownJid != null && JidUtil.isTypicalValidEntityBareJid(ownJid)) {
 				oJid = JidCreate.entityBareFrom(ownJid);
 			} else {
-				throw new Exception("Invalid ownJID specified");
+				LOGGER.warning("Invalid ownJID specified");
+				return -1;
 			}
 			if (partnerJid != null && JidUtil.isTypicalValidEntityBareJid(partnerJid)) {
 				pJid = JidCreate.entityBareFrom(partnerJid);
 			} else {
-				throw new Exception("Invalid partnerJID specified");
+				LOGGER.warning("Invalid partnerJID specified");
+				return -1;
 			}
 			server.get(oJid).getChat(pJid);
 		} catch (Exception e) {
@@ -195,12 +203,20 @@ class Weechat {
 	}
 
 	public static void loadLibrary(String soname) {
+		// First called function - setup Logger
+		try{
+			TruthLogger.setup();
+		} catch (IOException e) {
+			print(0, "Could not create log files");
+		}
 		try {
 			System.load(soname);
 		} catch (Exception e) {
-			print(0, "Error while loading " + soname);
+			LOGGER.severe("Error while loading " + soname);
 		}
-		print(0, "Successfully registered " + soname);
+		LOGGER.info("Successfully registered " + soname);
+		// register logging handler as early as possible
+		TruthLogger.initWeechatLogging(buffer_new("TheTruth Log"));
 	}
 
 	public static int command_callback(long bufferid, String cmd, String[] args) {

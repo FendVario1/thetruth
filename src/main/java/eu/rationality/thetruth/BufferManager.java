@@ -2,10 +2,14 @@ package eu.rationality.thetruth;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BufferManager {
 	private static BufferManager instance = null;
 	private Map<Long, Buffer> id2buffer;
+
+	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 	
 	public static BufferManager getinstance() {
 		if (instance == null) {
@@ -29,8 +33,8 @@ public class BufferManager {
 	public void deregister(Long nativeid) {
 		Buffer removed = id2buffer.remove(nativeid);
 		if (removed == null) {
-			Weechat.printerr(0, "Closing buffer " + Long.toHexString(nativeid)
-			                    + " which is not registered with the Buffermanager");
+			LOGGER.log(Level.WARNING, "Closing buffer " + Long.toHexString(nativeid)
+					+ " which is not registered with the Buffermanager");
 		} else {
 			removed.closeCallback();
 		}

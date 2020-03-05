@@ -3,6 +3,8 @@ package eu.rationality.thetruth;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jivesoftware.smack.PresenceListener;
 import org.jivesoftware.smack.packet.Presence;
@@ -17,6 +19,8 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 	private ServerBuffer buffer;
 	private Roster roster;
 	private Map<BareJid, Nick> jid2nick = new HashMap<>();
+
+	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 	
 	public Nicklist(ServerBuffer buffer, Roster roster) {
 		this.buffer = buffer;
@@ -31,7 +35,7 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 	@Override
 	public void rosterEntries(Collection<RosterEntry> rosterEntries) {
 		for (RosterEntry e : rosterEntries) {
-			buffer.print("Adding entry for: " + e.getJid());
+			LOGGER.log(Level.INFO, "adding entry for: " + e.getJid());
 			Presence p = getPresence(e.getJid());
 			Nick nick = new Nick(buffer, e.getJid(), e.getName(), p);
 			jid2nick.put(e.getJid(), nick);
@@ -46,7 +50,7 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 			BareJid bare = j.asBareJid();
 			if (jid2nick.containsKey(bare)) {
 				// Debugging aid
-				buffer.printErr("Warning: entry " + bare + " added, but already present in nicklist");
+				LOGGER.log(Level.WARNING, "entry " + bare + " added, but already present in nicklist");
 			}
 			RosterEntry e = roster.getEntry(j.asBareJid());
 			Presence    p = getPresence(bare);
@@ -62,12 +66,12 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 			BareJid bare = j.asBareJid();
 			Nick nick = jid2nick.get(bare);
 			if (nick == null) {
-				buffer.printErr("Warning: entry " + bare + " updated, but not present in nicklist");
+				LOGGER.log(Level.WARNING, "entry " + bare + " updated, but not present in nicklist");
 				continue;
 			}
 			RosterEntry e = roster.getEntry(bare);
 			Presence    p = getPresence(bare);
-			nick.updateInfo(bare, e.getName());
+			nick.updateInfo(bare, e.getName()); // TODO e.getName() returns null
 			nick.updatePresence(p);
 		}
 		
@@ -79,7 +83,7 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 			BareJid bare = j.asBareJid();
 			Nick nick = jid2nick.get(bare);
 			if (nick == null) {
-				buffer.printErr("Warning: entry " + bare + " deleted, but not present in nicklist");
+				LOGGER.log(Level.WARNING, "entry " + bare + " deleted, but not present in nicklist");
 				continue;
 			}
 			nick.destroy();
@@ -93,7 +97,7 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 		BareJid bare = presence.getFrom().asBareJid();
 		Nick nick = jid2nick.get(bare);
 		if (nick == null) {
-				buffer.printErr("Warning: Presence update for " + bare + " received, but not present in nicklist");
+			LOGGER.log(Level.WARNING, "presence update for " + bare + " received, but not present in nicklist");
 				return;
 		}
 		nick.updatePresence(getPresence(bare));

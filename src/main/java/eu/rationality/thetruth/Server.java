@@ -1,10 +1,10 @@
 package eu.rationality.thetruth;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.ReconnectionListener;
@@ -28,12 +28,12 @@ import org.jivesoftware.smackx.bookmarks.BookmarkedConference;
 import org.jivesoftware.smackx.carbons.CarbonCopyReceivedListener;
 import org.jivesoftware.smackx.carbons.CarbonManager;
 import org.jivesoftware.smackx.carbons.packet.CarbonExtension.Direction;
-import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
 import org.jivesoftware.smackx.muc.RoomInfo;
 import org.jivesoftware.smackx.ping.PingManager;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.parts.Localpart;
+import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
 
 public class Server {
@@ -46,6 +46,8 @@ public class Server {
 	private ServerBuffer serverbuffer;
 	private ConcurrentHashMap<EntityBareJid, ChatBuffer> chatBuffer = new ConcurrentHashMap<>();
 	private ConcurrentHashMap<EntityBareJid, MucBuffer> mucBuffer = new ConcurrentHashMap<>();
+
+	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
 	public Server(String domain, String user, String password, Integer port) {
 		super();
@@ -243,7 +245,17 @@ public class Server {
 		BookmarkManager bm = BookmarkManager.getBookmarkManager(con);
 		List<BookmarkedConference> bookmarks = bm.getBookmarkedConferences();
 		for (BookmarkedConference b : bookmarks ) {
-			getMuc(b.getJid(), b.getNickname().toString(), b.getPassword());
+			EntityBareJid a = b.getJid();
+			Resourcepart e = b.getNickname();
+			String c = "";
+			if (e == null) {
+				LOGGER.log(Level.WARNING, "Nickname could not be loaded from bookmark, could not connect to "
+						+ a.asEntityBareJidString());
+			} else {
+				c = e.toString();
+			}
+			String d = b.getPassword();
+			getMuc(a, c, d);
 		}
 	}
 	
@@ -256,10 +268,6 @@ public class Server {
 		ChatBuffer chatbuffer = chatBuffer.get(jid);
 		if(chatbuffer == null) {
 			chatbuffer = openChat(jid);
-			if(chatbuffer == null) {
-				// !TODO logging
-				return null;
-			}
 		}
 		return chatbuffer;
 	}
@@ -268,8 +276,8 @@ public class Server {
 		ChatBuffer b;
 		try {
 			b = new ChatBuffer(getJID(), jid.asEntityBareJidString(), this);
-		} catch (Exception e) {
-			// !TODO error handling
+		} catch (Weechat.WeechatCallException | XmppStringprepException e) {
+			LOGGER.log(Level.WARNING, "could not open chat " + jid.asEntityBareJidString(), e);
 			return null;
 		}
 		chatBuffer.put(jid, b);
@@ -280,14 +288,11 @@ public class Server {
 		// discover room
 		MucBuffer b = mucBuffer.get(jid);
 		if(b == null) {
-			b = openMuc(jid, nickname, password);
-			if (b == null) {
-				// !TODO logging
-			}
+			openMuc(jid, nickname, password);
 		}
 	}
 
-	private MucBuffer openMuc(EntityBareJid jid, String nickname, String password) {
+	private void openMuc(EntityBareJid jid, String nickname, String password) {
 		MucBuffer b;
 		String servername;
 		MultiUserChatManager cm = MultiUserChatManager.getInstanceFor(con);
@@ -296,12 +301,12 @@ public class Server {
 			RoomInfo roomInfo = cm.getRoomInfo(jid);
 			// get roomInfo works only on password unprotected Chats; !TODO get info for password protected rooms & then update buffername
 			b = new MucBuffer(jid.asEntityBareJidString(), roomInfo.getName(), nickname, password, this);
-		} catch (Exception e) {
-			// !TODO error handling
-			return null;
+		} catch (SmackException.NoResponseException | XMPPException.XMPPErrorException | NotConnectedException |
+				InterruptedException | Weechat.WeechatCallException | XmppStringprepException e) {
+				LOGGER.log(Level.WARNING, "could not open MUC " + jid.asEntityBareJidString(), e);
+			return;
 		}
 		mucBuffer.put(jid, b);
-		return null;//b;
 	}
 
 	public void disconnect() {

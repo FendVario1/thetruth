@@ -4,9 +4,13 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class WeechatDelayedExectorInvocationHandler implements InvocationHandler {
 	private Object wrapped;
+
+	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 	
 	private WeechatDelayedExectorInvocationHandler(Object wrapped) {
 		this.wrapped = wrapped;
@@ -34,10 +38,7 @@ public class WeechatDelayedExectorInvocationHandler implements InvocationHandler
 				}
 			} catch (IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
-				// TODO: You most certainly do not swallow 'e' here as
-				// it may result in extended debugging sessions :) Why not
-				// printErr() it? Ulitmately consider switching to
-				// java.util.logging (JUL).
+				LOGGER.log(Level.WARNING, "error while registering pending operation", e);
 				return Weechat.WEECHAT_RC_ERROR;
 			}
 		});
