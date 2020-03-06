@@ -169,6 +169,14 @@ JNIEXPORT jint JNICALL Java_eu_rationality_thetruth_Weechat_config_1integer
 JNIEXPORT jlong JNICALL Java_eu_rationality_thetruth_Weechat_config_1new
   (JNIEnv *, jclass, jstring);
 
+/*
+ * Class:     eu_rationality_thetruth_Weechat
+ * Method:    config_reload_callback
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_eu_rationality_thetruth_Weechat_config_1reload_1callback
+  (JNIEnv *, jclass, jlong);
+
 #ifdef __cplusplus
 }
 #endif

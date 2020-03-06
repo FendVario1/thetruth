@@ -40,19 +40,31 @@ class WeechatRegular implements WeechatAPI {
 		return Weechat.WEECHAT_RC_OK;
 	}
 
-	native public void trigger_pending_operations();
+	public void trigger_pending_operations(){
+		Weechat.trigger_pending_operations();
+	}
 	
 
 	// Write to buffer with native bufferid
-	native public void print(long bufferid, String str);
+	public void print(long bufferid, String str) {
+		Weechat.print(bufferid, str);
+	}
 	// Write to buffer with native bufferid with the specified weechat prefix
-	native public void print_prefix(long bufferid, String prefix, String str);
+	public void print_prefix(long bufferid, String prefix, String str) {
+		Weechat.print_prefix(bufferid, prefix, str);
+	}
 	// Write with date (in seconds since epoch) and tags
-	native public void print_date_tags(long bufferid, long date, String tags, String message);
+	public void print_date_tags(long bufferid, long date, String tags, String message) {
+		Weechat.print_date_tags(bufferid, date, tags, message);
+	}
 	// Create a named buffer returning the native buffer id
-	native public long buffer_new(String name);
+	public long buffer_new(String name) {
+		return Weechat.buffer_new(name);
+	}
 	// Set a property for buffer bufferid
-	native public void buffer_set(long bufferid, String property, String value);
+	public void buffer_set(long bufferid, String property, String value) {
+		Weechat.buffer_set(bufferid, property, value);
+	}
 	// Callback for input received
 	public int buffer_input_callback(long bufferid, String data) {
 		Buffer b = BufferManager.getinstance().byid(bufferid);
@@ -70,10 +82,18 @@ class WeechatRegular implements WeechatAPI {
 	}
 
 	// Nicklist related
-	native public long nicklist_add_nick(long bufferid, String nick, String color, String prefix);
-	native public void nicklist_remove_nick(long bufferid, long nickid);
-	native public void nicklist_remove_all(long bufferid);
-	native public void nicklist_nick_set(long bufferid, long nickid, String property, String value);
+	public long nicklist_add_nick(long bufferid, String nick, String color, String prefix) {
+		return Weechat.nicklist_add_nick(bufferid, nick, color, prefix);
+	}
+	public void nicklist_remove_nick(long bufferid, long nickid) {
+		Weechat.nicklist_remove_nick(bufferid, nickid);
+	}
+	public void nicklist_remove_all(long bufferid) {
+		Weechat.nicklist_remove_all(bufferid);
+	}
+	public void nicklist_nick_set(long bufferid, long nickid, String property, String value) {
+		Weechat.nicklist_nick_set(bufferid, nickid, property, value);
+	}
 
 	public void printerr(long bufferid, String str) {
 		print_prefix(bufferid, "error", str);
@@ -175,12 +195,24 @@ class WeechatRegular implements WeechatAPI {
 	}
 	
 	// Longs are native ids
-	native public boolean config_boolean(long option);
-	native public String config_color(long option);
-	native public void config_free(long config_file);
-	native public long config_get(String option_name);
-	native public int config_integer(long option);
-	native public long config_new(String name);
+	public boolean config_boolean(long option) {
+		return Weechat.config_boolean(option);
+	}
+	public String config_color(long option) {
+		return Weechat.config_color(option);
+	}
+	public void config_free(long config_file) {
+		Weechat.config_free(config_file);
+	}
+	public long config_get(String option_name) {
+		return Weechat.config_get(option_name);
+	}
+	public int config_integer(long option) {
+		return Weechat.config_integer(option);
+	}
+	public long config_new(String name) {
+		return Weechat.config_new(name);
+	}
 	public int config_reload_callback(long config_file_id) {
 		// TODO
 		return Weechat.WEECHAT_CONFIG_READ_OK;
