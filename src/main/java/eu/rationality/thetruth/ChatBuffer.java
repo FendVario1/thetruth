@@ -11,7 +11,6 @@ import org.jxmpp.stringprep.XmppStringprepException;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 public class ChatBuffer extends Buffer {
 	private String jidStringFrom, jidStringTo;

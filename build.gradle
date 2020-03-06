@@ -3,8 +3,8 @@ plugins {
 	id 'eclipse'
 	id 'java'
 
-	id "com.lazan.javaflavours" version "1.2"
-	id 'com.github.johnrengelman.shadow' version '5.1.0'
+	//id "com.lazan.javaflavours" version "1.2"
+	id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 group 'de.rationality.thetruth'
@@ -27,6 +27,7 @@ sourceSets {
 task testFlavor(type: Jar) {
 	classifier = 'testFlavorJar'
 }
+
 
 repositories {
 	mavenCentral()

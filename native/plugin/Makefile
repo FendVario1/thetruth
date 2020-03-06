@@ -1,9 +1,11 @@
-WARNINGS := -Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align \
-            -Wwrite-strings -Wmissing-prototypes -Wmissing-declarations \
-            -Wredundant-decls -Wnested-externs -Winline \
-            -Wuninitialized -Wconversion \
-			-Wno-variadic-macros # Disabled due to weechat-plugin.h
+WARNINGS := 
+			#-Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align \
+            #-Wwrite-strings -Wmissing-prototypes -Wmissing-declarations \
+            #-Wredundant-decls -Wnested-externs -Winline \
+            #-Wuninitialized -Wconversion \
+			#-Wno-variadic-macros # Disabled due to weechat-plugin.h
           # -Wstrict-prototypes # Disabled due to weechat-plugin.h
+
 INCLUDES := -I/usr/include/weechat \
             -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux
 LINKLIBS := -L$(JAVA_HOME)/lib/server -ljvm -pthread
@@ -19,9 +21,13 @@ DEPFILES := $(patsubst %.c,%.d,$(SRCFILES))
 .PHONY: clean all
 
 TARGET := xmpp.so
-all: $(TARGET) java/Main.class
+TARGET_TEST := test/xmpp-stub.so
+all: $(TARGET) $(TARGET_TEST) java/Main.class
 
 -include $(DEPFILES)
+
+$(TARGET_TEST): test/nativetestfunctions.o
+	$(CC) $(LDFLAGS) $^ $(LINKLIBS) -o $@
 
 $(TARGET): $(OBJFILES)
 	$(CC) $(LDFLAGS) $^ $(LINKLIBS) -o $@

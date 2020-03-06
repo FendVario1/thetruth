@@ -16,218 +16,196 @@ import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.util.JidUtil;
 
 class Weechat {
-	@SuppressWarnings("serial")
-	static class WeechatCallException extends Exception {
-	};
-	
-	/* return codes for plugin functions */
-	static final int WEECHAT_RC_OK     =  0;
-	static final int WEECHAT_RC_OK_EAT =  1;
-	static final int WEECHAT_RC_ERROR  = -1;
-	
-	/* return codes for config read functions/callbacks */
-	static final int WEECHAT_CONFIG_READ_OK              =  0;
-	static final int WEECHAT_CONFIG_READ_MEMORY_ERROR    = -1;
-	static final int WEECHAT_CONFIG_READ_FILE_NOT_FOUND  = -2;
+    static class WeechatCallException extends Exception {
+    };
 
-	/* return codes for config write functions/callbacks */
-	static final int WEECHAT_CONFIG_WRITE_OK             =  0;
-	static final int WEECHAT_CONFIG_WRITE_ERROR          = -1;
-	static final int WEECHAT_CONFIG_WRITE_MEMORY_ERROR   = -2;
-	
-	/* null value for option */
-	static final String WEECHAT_CONFIG_OPTION_NULL       = "null";
+    /* return codes for plugin functions */
+    static final int WEECHAT_RC_OK     =  0;
+    static final int WEECHAT_RC_OK_EAT =  1;
+    static final int WEECHAT_RC_ERROR  = -1;
 
-	/* return codes for config option set */
-	static final int WEECHAT_CONFIG_OPTION_SET_OK_CHANGED       =  2;
-	static final int WEECHAT_CONFIG_OPTION_SET_OK_SAME_VALUE    =  1;
-	static final int WEECHAT_CONFIG_OPTION_SET_ERROR            =  0;
-	static final int WEECHAT_CONFIG_OPTION_SET_OPTION_NOT_FOUND = -1;
+    /* return codes for config read functions/callbacks */
+    static final int WEECHAT_CONFIG_READ_OK              =  0;
+    static final int WEECHAT_CONFIG_READ_MEMORY_ERROR    = -1;
+    static final int WEECHAT_CONFIG_READ_FILE_NOT_FOUND  = -2;
 
-	/* return codes for config option unset */
-	static final int WEECHAT_CONFIG_OPTION_UNSET_OK_NO_RESET    =  0;
-	static final int WEECHAT_CONFIG_OPTION_UNSET_OK_RESET       =  1;
-	static final int WEECHAT_CONFIG_OPTION_UNSET_OK_REMOVED     =  2;
-	static final int WEECHAT_CONFIG_OPTION_UNSET_ERROR          = -1;
+    /* return codes for config write functions/callbacks */
+    static final int WEECHAT_CONFIG_WRITE_OK             =  0;
+    static final int WEECHAT_CONFIG_WRITE_ERROR          = -1;
+    static final int WEECHAT_CONFIG_WRITE_MEMORY_ERROR   = -2;
 
-	static ConcurrentHashMap<EntityBareJid, Server> server = new ConcurrentHashMap<>();
-	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+    /* null value for option */
+    static final String WEECHAT_CONFIG_OPTION_NULL       = "null";
+
+    /* return codes for config option set */
+    static final int WEECHAT_CONFIG_OPTION_SET_OK_CHANGED       =  2;
+    static final int WEECHAT_CONFIG_OPTION_SET_OK_SAME_VALUE    =  1;
+    static final int WEECHAT_CONFIG_OPTION_SET_ERROR            =  0;
+    static final int WEECHAT_CONFIG_OPTION_SET_OPTION_NOT_FOUND = -1;
+
+    /* return codes for config option unset */
+    static final int WEECHAT_CONFIG_OPTION_UNSET_OK_NO_RESET    =  0;
+    static final int WEECHAT_CONFIG_OPTION_UNSET_OK_RESET       =  1;
+    static final int WEECHAT_CONFIG_OPTION_UNSET_OK_REMOVED     =  2;
+    static final int WEECHAT_CONFIG_OPTION_UNSET_ERROR          = -1;
+
+    static ConcurrentHashMap<EntityBareJid, Server> server = new ConcurrentHashMap<>();
+    private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
 
-	
-	// Weechat is singlethreaded: therefore we need a mechanism to transform
-	// asynchronous operations into callbacks triggered from the main loop
-	// Callback management for native callbacks that need to be synchronized
-	private static ConcurrentLinkedQueue<Supplier<Integer>> pendingOperations =
-			new ConcurrentLinkedQueue<Supplier<Integer>>();
-	public  static void register_pending_operation(Supplier<Integer> op) {
-		pendingOperations.add(op);
-		trigger_pending_operations();
-	}
-	public static int process_pending_operations() {
-		Supplier<Integer> op;
-		while((op = pendingOperations.poll()) != null) {
-			op.get();
-		}
-		return WEECHAT_RC_OK;
-	}
-	native static void trigger_pending_operations();
-	
 
-	// Write to buffer with native bufferid
-	native static void print(long bufferid, String str);
-	// Write to buffer with native bufferid with the specified weechat prefix
-	native static void print_prefix(long bufferid, String prefix, String str);
-	// Write with date (in seconds since epoch) and tags
-	native static void print_date_tags(long bufferid, long date, String tags, String message);
-	// Create a named buffer returning the native buffer id
-	native static long buffer_new(String name);
-	// Set a property for buffer bufferid
-	native static void buffer_set(long bufferid, String property, String value);
-	// Callback for input received
-	public static int buffer_input_callback(long bufferid, String data) {
-		Buffer b = BufferManager.getinstance().byid(bufferid);
-		if (b == null) {
-			printerr(0, "Input callback received for buffer " + Long.toHexString(bufferid) +
-					" which is not managed by the plugin");
-			return WEECHAT_RC_ERROR;
-		}
-		return b.handleInput(data);
-	}
-	// Callback for buffer close events
-	public static int buffer_close_callback(long bufferid) {
-		BufferManager.getinstance().deregister(bufferid);
-		return WEECHAT_RC_OK;
-	}
+    // Weechat is singlethreaded: therefore we need a mechanism to transform
+    // asynchronous operations into callbacks triggered from the main loop
+    // Callback management for native callbacks that need to be synchronized
+    private static ConcurrentLinkedQueue<Supplier<Integer>> pendingOperations =
+            new ConcurrentLinkedQueue<Supplier<Integer>>();
 
-	// Nicklist related
-	native static long nicklist_add_nick(long bufferid, String nick, String color, String prefix);
-	native static void nicklist_remove_nick(long bufferid, long nickid);
-	native static void nicklist_remove_all(long bufferid);
-	native static void nicklist_nick_set(long bufferid, long nickid, String property, String value);
+    private static WeechatAPI instance = null;
+    static synchronized WeechatAPI getAPIInstance() {
+        if (instance == null) {
+            instance = new WeechatRegular();
+        }
+        return instance;
+    }
 
-	public static void printerr(long bufferid, String str) {
-		print_prefix(bufferid, "error", str);
-	}
-	
-	public static void print_backtrace(Throwable t) {
-		var frames = t.getStackTrace();
-		Weechat.printerr(0, "Backtrace:\n");
-		for (var f : frames) {
-			Weechat.printerr(0,  "   " + f.toString());
-		}
-	}
+    // ONLY FOR TESTS!
+    static void setAPIInstance(WeechatAPI instance) {
+        Weechat.instance = instance;
 
-	public static void shutdown() {
-		Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-		for(Thread t : threadSet) {
-			if(t.equals(Thread.currentThread()))
-				continue;
-			t.interrupt();
-		}
-	}
+    }
 
-	public static int initUser(String jidConf, String pw) {
-		LOGGER.info("Java initUser");
-		SmackConfiguration.DEBUG = true;
-		try {
-			EntityBareJid jid;
-			final String user, domain;
-			if (jidConf != null && JidUtil.isTypicalValidEntityBareJid(jidConf)) {
-				jid = JidCreate.entityBareFrom(jidConf);
-				user = jid.getLocalpart().toString();
-				domain = jid.getDomain().toString();
-			} else {
-				LOGGER.warning("Invalid JID specified from configuration");
-				return WEECHAT_RC_ERROR;
-			}
-			Server s = new Server(domain, user, pw, null);
+    static void register_pending_operation(Supplier<Integer> op) {
+        getAPIInstance().register_pending_operation(op);
+    }
 
-			server.put(jid, s);
+    static int process_pending_operations() {
+        return getAPIInstance().process_pending_operations();
+    }
 
-			s.connect();
-		} catch (WeechatCallException | IOException | SmackException | XMPPException | InterruptedException e) {
-			LOGGER.log(Level.SEVERE, "Java Init failed", e);
-			return WEECHAT_RC_ERROR;
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Unexpected Error in Java Init", e);
-		}
-		return WEECHAT_RC_OK;
-	}
+    static void trigger_pending_operations() {
+        getAPIInstance().trigger_pending_operations();
+    }
 
-	public static int initiateChat(String ownJid, String partnerJid) {
-		LOGGER.info("Java initiated");
-		try {
-			EntityBareJid oJid, pJid;
-			if (ownJid != null && JidUtil.isTypicalValidEntityBareJid(ownJid)) {
-				oJid = JidCreate.entityBareFrom(ownJid);
-			} else {
-				LOGGER.warning("Invalid ownJID specified");
-				return -1;
-			}
-			if (partnerJid != null && JidUtil.isTypicalValidEntityBareJid(partnerJid)) {
-				pJid = JidCreate.entityBareFrom(partnerJid);
-			} else {
-				LOGGER.warning("Invalid partnerJID specified");
-				return -1;
-			}
-			server.get(oJid).getChat(pJid);
-		} catch (Exception e) {
-			printerr(0, "Java initChat failed");
-			return WEECHAT_RC_ERROR;
-		}
-		return WEECHAT_RC_OK;
-	}
+    // Write to buffer with native bufferid
+    static void print(long bufferid, String str) {
+        getAPIInstance().print(bufferid, str);
+    }
 
-	public static void loadLibrary(String soname) {
-		// First called function - setup Logger
-		try{
-			TruthLogger.setup();
-		} catch (IOException e) {
-			print(0, "Could not create log files");
-		}
-		try {
-			System.load(soname);
-		} catch (Exception e) {
-			LOGGER.severe("Error while loading " + soname);
-		}
-		LOGGER.info("Successfully registered " + soname);
-		// register logging handler as early as possible
-		TruthLogger.initWeechatLogging(buffer_new("TheTruth Log"));
-	}
+    // Write to buffer with native bufferid with the specified weechat prefix
+    static void print_prefix(long bufferid, String prefix, String str) {
+        getAPIInstance().print_prefix(bufferid, prefix, str);
+    }
 
-	public static int command_callback(long bufferid, String cmd, String[] args) {
-		Buffer b = BufferManager.getinstance().byid(bufferid);
-		if (b == null) {
-			// For hooked commands: legit behaviour: hooked command invoked on other (e.g. irc) buffer
-			return WEECHAT_RC_OK;
-		}
-		return b.receiveCommand(cmd, args);
-	}
-	
-	// Longs are native ids
-	native static boolean config_boolean(long option);
-	native static String config_color(long option);
-	native static void config_free(long config_file);
-	native static long config_get(String option_name);
-	native static int config_integer(long option);
-	native static long config_new(String name);
-	public static int config_reload_callback(long config_file_id) {
-		// TODO
-		return WEECHAT_CONFIG_READ_OK;
-	}
-	/*
-	 * weechat.config_new
-	 * weechat.config_new_option
-	 * weechat.config_new_section
-	 * weechat.config_option_free
-	 * weechat.config_option_set
-	 * weechat.config_read
-	 * weechat.config_reload
-	 * weechat.config_search_option
-	 * weechat.config_string
-	 * weechat.config_write
-	 * weechat.config_write_line
-	 * weechat.config_write_option
-	 */
+    // Write with date (in seconds since epoch) and tags
+    static void print_date_tags(long bufferid, long date, String tags, String message) {
+        getAPIInstance().print_date_tags(bufferid, date, tags, message);
+    }
+
+    // Create a named buffer returning the native buffer id
+    static long buffer_new(String name) {
+        return getAPIInstance().buffer_new(name);
+    }
+
+    // Set a property for buffer bufferid
+    static void buffer_set(long bufferid, String property, String value) {
+        getAPIInstance().buffer_set(bufferid, property, value);
+    }
+
+    // Callback for input received
+    static int buffer_input_callback(long bufferid, String data) {
+        return getAPIInstance().buffer_input_callback(bufferid, data);
+    }
+
+    // Callback for buffer close events
+    static int buffer_close_callback(long bufferid) {
+        return getAPIInstance().buffer_close_callback(bufferid);
+    }
+
+    // Nicklist related
+    static long nicklist_add_nick(long bufferid, String nick, String color, String prefix) {
+        return getAPIInstance().nicklist_add_nick(bufferid, nick, color, prefix);
+    }
+
+    static void nicklist_remove_nick(long bufferid, long nickid) {
+        getAPIInstance().nicklist_remove_nick(bufferid, nickid);
+    }
+
+    static void nicklist_remove_all(long bufferid) {
+        getAPIInstance().nicklist_remove_all(bufferid);
+    }
+
+    static void nicklist_nick_set(long bufferid, long nickid, String property, String value) {
+        getAPIInstance().nicklist_nick_set(bufferid, nickid, property, value);
+    }
+
+    static void printerr(long bufferid, String str) {
+        getAPIInstance().printerr(bufferid, str);
+    }
+
+    static void print_backtrace(Throwable t) {
+        getAPIInstance().print_backtrace(t);
+    }
+
+    static void shutdown() {
+        getAPIInstance().shutdown();
+    }
+
+    static int initUser(String jidConf, String pw) {
+        return getAPIInstance().initUser(jidConf, pw);
+    }
+
+    static int initiateChat(String ownJid, String partnerJid) {
+        return getAPIInstance().initiateChat(ownJid, partnerJid);
+    }
+
+    static void loadLibrary(String soname) {
+        getAPIInstance().loadLibrary(soname);
+    }
+
+    static int command_callback(long bufferid, String cmd, String[] args) {
+        return getAPIInstance().command_callback(bufferid, cmd, args);
+    }
+
+    // Longs are native ids
+    static boolean config_boolean(long option) {
+        return getAPIInstance().config_boolean(option);
+    }
+
+    static String config_color(long option) {
+        return getAPIInstance().config_color(option);
+    }
+
+    static void config_free(long config_file) {
+        getAPIInstance().config_free(config_file);
+    }
+
+    static long config_get(String option_name) {
+        return getAPIInstance().config_get(option_name);
+    }
+
+    static int config_integer(long option) {
+        return getAPIInstance().config_integer(option);
+    }
+
+    static long config_new(String name) {
+        return getAPIInstance().config_new(name);
+    }
+
+    static int config_reload_callback(long config_file_id) {
+        return getAPIInstance().config_reload_callback(config_file_id);
+    }
+    /*
+     * weechat.config_new
+     * weechat.config_new_option
+     * weechat.config_new_section
+     * weechat.config_option_free
+     * weechat.config_option_set
+     * weechat.config_read
+     * weechat.config_reload
+     * weechat.config_search_option
+     * weechat.config_string
+     * weechat.config_write
+     * weechat.config_write_line
+     * weechat.config_write_option
+     */
 }
