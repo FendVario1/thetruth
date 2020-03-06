@@ -23,9 +23,9 @@ public class ChatBuffer extends Buffer {
 		super(jidStringTo); // + " (" + jidStringFrom + ")"
 
 		jidTo = JidCreate.from(jidStringTo).asEntityBareJidIfPossible();
-		Weechat.buffer_set(nativeid, "title", "Chat: " + jidStringTo + " (From: " + jidStringFrom + ")");
-		Weechat.buffer_set(nativeid, "nicklist", "1");
-		Weechat.buffer_set(nativeid, "display", "auto");
+		Weechat.getAPIInstance().buffer_set(nativeid, "title", "Chat: " + jidStringTo + " (From: " + jidStringFrom + ")");
+		Weechat.getAPIInstance().buffer_set(nativeid, "nicklist", "1");
+		Weechat.getAPIInstance().buffer_set(nativeid, "display", "auto");
 		this.jidStringFrom = jidStringFrom;
 		this.jidStringTo = jidStringTo;
 		this.server = server;
@@ -48,7 +48,7 @@ public class ChatBuffer extends Buffer {
 	@Override
 	public void printMsgDateTags(long time, String sender, String data, String tags) {
 		String local = sender.split("@", 2)[0];
-		Weechat.print_date_tags(nativeid, time, tags + ",nick_"+sender+",host_"+sender, local + "\t" + data);
+		Weechat.getAPIInstance().print_date_tags(nativeid, time, tags + ",nick_"+sender+",host_"+sender, local + "\t" + data);
 	}
 
 	@Override
@@ -66,6 +66,6 @@ public class ChatBuffer extends Buffer {
 	public void closeCallback() {
 		super.closeCallback();
 		server.removeChatBuffer(jidTo); // TODO close in smack??
-		Weechat.buffer_close_callback(nativeid);
+		Weechat.getAPIInstance().buffer_close_callback(nativeid);
 	}
 }

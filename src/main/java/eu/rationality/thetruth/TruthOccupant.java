@@ -62,17 +62,17 @@ public class TruthOccupant {
             prefixcolor = "white";
         }
 
-        Weechat.nicklist_nick_set(buffer.getNativeId(), nativeID, "prefix", prefix + " ");
-        Weechat.nicklist_nick_set(buffer.getNativeId(), nativeID, "prefixcolor", prefixcolor);
+        Weechat.getAPIInstance().nicklist_nick_set(buffer.getNativeId(), nativeID, "prefix", prefix + " ");
+        Weechat.getAPIInstance().nicklist_nick_set(buffer.getNativeId(), nativeID, "prefixcolor", prefixcolor);
     }
 
     private void loadNickname() {
-        Weechat.nicklist_remove_nick(buffer.getNativeId(), nativeID);
-        this.nativeID = Weechat.nicklist_add_nick(buffer.getNativeId(), jid.getResourceOrEmpty().toString(), "", "");
+        Weechat.getAPIInstance().nicklist_remove_nick(buffer.getNativeId(), nativeID);
+        this.nativeID = Weechat.getAPIInstance().nicklist_add_nick(buffer.getNativeId(), jid.getResourceOrEmpty().toString(), "", "");
     }
 
     public void destroy() {
-        Weechat.nicklist_remove_nick(buffer.getNativeId(), nativeID);
+        Weechat.getAPIInstance().nicklist_remove_nick(buffer.getNativeId(), nativeID);
         nativeID = 0;
     }
 }

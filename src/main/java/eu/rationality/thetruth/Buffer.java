@@ -18,19 +18,19 @@ public abstract class Buffer {
 	}
 
 	public void print(String str) {
-		Weechat.print(getNativeId(), str);
+		Weechat.getAPIInstance().print(getNativeId(), str);
 	}
 	
 	public void printErr(String str) {
-		Weechat.print_prefix(getNativeId(), "error", str);
+		Weechat.getAPIInstance().print_prefix(getNativeId(), "error", str);
 	}
 	
 	public void print_prefix(String prefix, String msg) {
-		Weechat.print_prefix(getNativeId(), prefix, msg);
+		Weechat.getAPIInstance().print_prefix(getNativeId(), prefix, msg);
 	}
 	
 	public void printMsgDateTags(long time, String sender, String data, String tags) {
-		Weechat.print_date_tags(nativeid, time, tags + ",nick_"+sender+",host_"+sender, sender + "\t" + data);
+		Weechat.getAPIInstance().print_date_tags(nativeid, time, tags + ",nick_"+sender+",host_"+sender, sender + "\t" + data);
 	}
 	
 	public void sendMsg() {
@@ -53,7 +53,7 @@ public abstract class Buffer {
 	}
 	
 	static long createNativeBuffer(String name) throws WeechatCallException {
-		long nativeid = Weechat.buffer_new(name);
+		long nativeid = Weechat.getAPIInstance().buffer_new(name);
 		if (nativeid == 0) {
 			throw new Weechat.WeechatCallException();
 		}

@@ -36,7 +36,7 @@ public class MucBuffer extends Buffer  {
             ServiceDiscoveryManager sm = ServiceDiscoveryManager.getInstanceFor(localServer.getCon());
             boolean ret = sm.supportsFeature(chatJid, "http://jabber.org/protocol/muc");
             if (!ret) {
-                Weechat.print(localServer.getServerbuffer().getNativeId(), jidStringTo + " is not a valid MUC!");
+                Weechat.getAPIInstance().print(localServer.getServerbuffer().getNativeId(), jidStringTo + " is not a valid MUC!");
             }
         } catch (SmackException.NoResponseException | XMPPException.XMPPErrorException |
                 SmackException.NotConnectedException | InterruptedException e) {
@@ -62,7 +62,7 @@ public class MucBuffer extends Buffer  {
                     chat.join(name, password);
                 }
             } catch (MultiUserChatException.NotAMucServiceException e) {
-                Weechat.print(localServer.getServerbuffer().nativeid, jidStringTo + " is not a valid MUC!");
+                Weechat.getAPIInstance().print(localServer.getServerbuffer().nativeid, jidStringTo + " is not a valid MUC!");
             } catch (XMPPException.XMPPErrorException | InterruptedException | SmackException.NoResponseException |
                     SmackException.NotConnectedException e) {
                 LOGGER.log(Level.WARNING, "could not join MUC " + jidStringTo, e);
@@ -81,7 +81,7 @@ public class MucBuffer extends Buffer  {
                     tll= message.getFrom().asDomainFullJidIfPossible().toString();
                 }
                 final String username = tll;
-                Weechat.register_pending_operation(() -> {
+                Weechat.getAPIInstance().register_pending_operation(() -> {
                     printMsgDateTags(System.currentTimeMillis() / 1000L,
                             username, message.getBody(), "notify_private,log1");
                     return Weechat.WEECHAT_RC_OK;
@@ -89,9 +89,9 @@ public class MucBuffer extends Buffer  {
             }
         };
         chat.addMessageListener(messageListener);
-        Weechat.buffer_set(nativeid, "title", "Chatroom: " + chat.getRoom()); // TODO get other roomname?
-        Weechat.buffer_set(nativeid, "nicklist", "1");
-        Weechat.buffer_set(nativeid, "display", "auto");
+        Weechat.getAPIInstance().buffer_set(nativeid, "title", "Chatroom: " + chat.getRoom()); // TODO get other roomname?
+        Weechat.getAPIInstance().buffer_set(nativeid, "nicklist", "1");
+        Weechat.getAPIInstance().buffer_set(nativeid, "display", "auto");
 
         this.occupantsList = new Occupants(this, chat);
         chat.addParticipantListener(occupantsList);
@@ -131,7 +131,7 @@ public class MucBuffer extends Buffer  {
         chat.removeMessageListener(messageListener);
         chat.removeParticipantListener(occupantsList);
         chat.removeParticipantStatusListener(occupantsList);
-        Weechat.buffer_close_callback(nativeid);
+        Weechat.getAPIInstance().buffer_close_callback(nativeid);
         try {
             chat.leave();
         } catch (SmackException.NotConnectedException | InterruptedException e) {

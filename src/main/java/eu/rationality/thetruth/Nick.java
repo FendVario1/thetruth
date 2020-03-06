@@ -18,15 +18,15 @@ public class Nick {
 		this.buffer = buffer;
 		this.jid = jid;
 		this.name = name;
-		this.nativeID = Weechat.nicklist_add_nick(buffer.getNativeId(), jid.toString(), "", "");
+		this.nativeID = Weechat.getAPIInstance().nicklist_add_nick(buffer.getNativeId(), jid.toString(), "", "");
 		updatePresence(presence);
 	}
 	
 	public void updateInfo(BareJid jid, String name) {
 		this.jid  = jid;
 		this.name = name;
-		Weechat.nicklist_remove_nick(buffer.getNativeId(), nativeID);
-		this.nativeID = Weechat.nicklist_add_nick(buffer.getNativeId(), jid.toString(), "", "");
+		Weechat.getAPIInstance().nicklist_remove_nick(buffer.getNativeId(), nativeID);
+		this.nativeID = Weechat.getAPIInstance().nicklist_add_nick(buffer.getNativeId(), jid.toString(), "", "");
 	}
 
 	public void updatePresence(Presence presence) {
@@ -47,12 +47,12 @@ public class Nick {
 			buffer.print_prefix("quit", name + " (" + jid + ") disconnected");
 		}
 		
-		Weechat.nicklist_nick_set(buffer.getNativeId(), nativeID, "prefix", prefix + " ");
-		Weechat.nicklist_nick_set(buffer.getNativeId(), nativeID, "prefixcolor", prefixcolor);
+		Weechat.getAPIInstance().nicklist_nick_set(buffer.getNativeId(), nativeID, "prefix", prefix + " ");
+		Weechat.getAPIInstance().nicklist_nick_set(buffer.getNativeId(), nativeID, "prefixcolor", prefixcolor);
 	}
 	
 	public void destroy() {
-		Weechat.nicklist_remove_nick(buffer.getNativeId(), nativeID);
+		Weechat.getAPIInstance().nicklist_remove_nick(buffer.getNativeId(), nativeID);
 		nativeID = 0;
 	}
 }

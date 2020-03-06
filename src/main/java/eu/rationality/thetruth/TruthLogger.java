@@ -49,20 +49,20 @@ public class TruthLogger {
         @Override
         public void publish(LogRecord record) {
             DateFormat simple = new SimpleDateFormat("HH:mm:ss");
-            Weechat.print(buffer, simple.format(new Date(record.getMillis())) + " at " + record.getSourceClassName() + "."
+            Weechat.getAPIInstance().print(buffer, simple.format(new Date(record.getMillis())) + " at " + record.getSourceClassName() + "."
                     + record.getSourceMethodName());
             Level level = record.getLevel();
             if (level == Level.WARNING || level == Level.SEVERE) {
-                Weechat.printerr(buffer, record.getLevel() + " " + record.getMessage());
+                Weechat.getAPIInstance().printerr(buffer, record.getLevel() + " " + record.getMessage());
             } else {
-                Weechat.print(buffer, record.getLevel() + " " + record.getMessage());
+                Weechat.getAPIInstance().print(buffer, record.getLevel() + " " + record.getMessage());
             }
             if (record.getThrown() != null) {
                 Throwable throwable = record.getThrown();
-                Weechat.print(buffer, throwable.getMessage());
+                Weechat.getAPIInstance().print(buffer, throwable.getMessage());
                 StackTraceElement[] stackTrace = throwable.getStackTrace();
                 for (StackTraceElement el : stackTrace) {
-                    Weechat.print(buffer, "\t"+el.toString());
+                    Weechat.getAPIInstance().print(buffer, "\t"+el.toString());
                 }
             }
         }

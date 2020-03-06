@@ -15,9 +15,9 @@ public class ServerBuffer extends Buffer {
 	
 	public ServerBuffer(Server server, Roster roster) throws WeechatCallException {
 		super(server.getJID());
-		Weechat.buffer_set(nativeid, "title", "Account: " + server.getJID());
-		Weechat.buffer_set(nativeid, "nicklist", "1");
-		Weechat.buffer_set(nativeid, "display", "auto");
+		Weechat.getAPIInstance().buffer_set(nativeid, "title", "Account: " + server.getJID());
+		Weechat.getAPIInstance().buffer_set(nativeid, "nicklist", "1");
+		Weechat.getAPIInstance().buffer_set(nativeid, "display", "auto");
 		this.server = server;
 		this.nicklist = new Nicklist(this, roster);
 	}
@@ -42,7 +42,7 @@ public class ServerBuffer extends Buffer {
 		try {
 			EntityBareJid jid = JidCreate.entityBareFrom(split[0]);
 			ChatBuffer b = server.getChat(jid);
-			Weechat.buffer_set(b.getNativeId(), "display", "auto");
+			Weechat.getAPIInstance().buffer_set(b.getNativeId(), "display", "auto");
 			b.handleInput(split[1]);
 		} catch (XmppStringprepException e) {
 			printErr(split[0] + " does not constitute a valid jid");

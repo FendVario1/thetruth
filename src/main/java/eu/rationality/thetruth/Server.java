@@ -117,12 +117,12 @@ public class Server {
 		if (this.serverbuffer == null) {
 			this.serverbuffer = new ServerBuffer(this, roster);
 		}
-		Weechat.print(0, "Created serverbuffer");
+		Weechat.getAPIInstance().print(0, "Created serverbuffer");
 		serverbuffer.print("Connecting to server");
 		con.addConnectionListener(new ConnectionListener() {
 			@Override
 			public void connectionClosedOnError(Exception e) {
-				Weechat.register_pending_operation(() -> {
+				Weechat.getAPIInstance().register_pending_operation(() -> {
 					serverbuffer.printErr("Connection closed on error(" + e.getClass() + "): " + e.getMessage());
 					return Weechat.WEECHAT_RC_OK;
 				});
@@ -130,7 +130,7 @@ public class Server {
 
 			@Override
 			public void connectionClosed() {
-				Weechat.register_pending_operation(() -> {
+				Weechat.getAPIInstance().register_pending_operation(() -> {
 					serverbuffer.print("Connection to server closed");
 					return Weechat.WEECHAT_RC_OK;
 				});
@@ -139,7 +139,7 @@ public class Server {
 
 			@Override
 			public void connected(XMPPConnection connection) {
-				Weechat.register_pending_operation(() -> {
+				Weechat.getAPIInstance().register_pending_operation(() -> {
 					serverbuffer.print("Connection to server " + connection.getHost() + " on port "
 							+ connection.getPort() + " succeeded");
 					return Weechat.WEECHAT_RC_OK;
@@ -149,7 +149,7 @@ public class Server {
 
 			@Override
 			public void authenticated(XMPPConnection connection, boolean resumed) {
-				Weechat.register_pending_operation(() -> {
+				Weechat.getAPIInstance().register_pending_operation(() -> {
 					serverbuffer.print("Authenticated as " + connection.getUser());
 					return Weechat.WEECHAT_RC_OK;
 				});
@@ -159,7 +159,7 @@ public class Server {
 
 			@Override // TODO create Userbuffer etc.
 			public void newIncomingMessage(EntityBareJid from, Message message, Chat chat) {
-				Weechat.register_pending_operation(() -> {
+				Weechat.getAPIInstance().register_pending_operation(() -> {
 					Localpart lp = from.getLocalpartOrNull();
 					if (lp == null) {
 						serverbuffer.printMsgDateTags(System.currentTimeMillis() / 1000L, from.asEntityBareJidString(),
@@ -187,7 +187,7 @@ public class Server {
 		rm.addReconnectionListener(new ReconnectionListener() {
 			@Override
 			public void reconnectionFailed(Exception e) {
-				Weechat.register_pending_operation(() -> {
+				Weechat.getAPIInstance().register_pending_operation(() -> {
 					serverbuffer.printErr("Failed reconnection attempt");
 					return Weechat.WEECHAT_RC_OK;
 				});
@@ -195,7 +195,7 @@ public class Server {
 			
 			@Override
 			public void reconnectingIn(int seconds) {
-				Weechat.register_pending_operation(() -> {
+				Weechat.getAPIInstance().register_pending_operation(() -> {
 					serverbuffer.printErr("Reconnection in " + seconds + " seconds");
 					return Weechat.WEECHAT_RC_OK;
 				});
@@ -208,8 +208,8 @@ public class Server {
 			// and invoke all subsequent roster updates asynchronously but guarded by the proxy above
 			roster.getEntriesAndAddListener(rl, serverbuffer.getNicklist());
 		} catch (Exception e) {
-			Weechat.print(0, "Failed to add RoosterListener: " + e.toString());
-			Weechat.print_backtrace(e);
+			Weechat.getAPIInstance().print(0, "Failed to add RoosterListener: " + e.toString());
+			Weechat.getAPIInstance().print_backtrace(e);
 		}
 		// Actually login
 		con.connect().login();
@@ -223,7 +223,7 @@ public class Server {
 			cm.addCarbonCopyReceivedListener(new CarbonCopyReceivedListener() {
 				@Override
 				public void onCarbonCopyReceived(Direction direction, Message carbonCopy, Message wrappingMessage) {
-					Weechat.register_pending_operation(() -> {
+					Weechat.getAPIInstance().register_pending_operation(() -> {
 						// TODO: I'am not sure why you use asEntityBareJidIfPossible() here, but if you just want
 						// to strip the resourcepart, simply use asBareJid() (which does not produce null values)
 						String from = carbonCopy.getFrom().asEntityBareJidIfPossible().toString();
