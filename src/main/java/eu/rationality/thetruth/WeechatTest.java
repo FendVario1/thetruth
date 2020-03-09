@@ -21,6 +21,8 @@ class WeechatTest implements WeechatAPI {
     static ConcurrentHashMap<EntityBareJid, Server> server = new ConcurrentHashMap<>();
     private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
+    //todo evtl UnsopportedOperationException
+    class WrongArgumentsException extends IllegalArgumentException{}
 
 
     // Weechat is singlethreaded: therefore we need a mechanism to transform
@@ -47,22 +49,29 @@ class WeechatTest implements WeechatAPI {
 
     // Write to buffer with native bufferid
     public void print(long bufferid, String str) {
-        Weechat.print(bufferid, str); //todo
+        if( bufferid != 111 || !(str.equals("myString") || str.equals("echo: testString")))
+            throw new WrongArgumentsException();
     }
     // Write to buffer with native bufferid with the specified weechat prefix
     public void print_prefix(long bufferid, String prefix, String str) {
-        Weechat.print_prefix(bufferid, prefix, str); //todo
+        if(bufferid != 111 || !(prefix.equals("error") || prefix.equals("testPrefix")) || !str.equals("testing"))
+            throw new WrongArgumentsException();
     }
     // Write with date (in seconds since epoch) and tags
     public void print_date_tags(long bufferid, long date, String tags, String message) {
-        Weechat.print_date_tags(bufferid, date, tags, message); //todo
+        if(bufferid != 111 || date != 555 || !tags.equals("testTags,nick_testSender,host_testSender") || !message.equals("testSender\ttestData"))
+            throw new WrongArgumentsException();
     }
     // Create a named buffer returning the native buffer id
     public long buffer_new(String name) {
-        return 111; //todo
+        if(name.equals("0"))
+            return 0;
+        else
+            return 111; //todo
     }
     // Set a property for buffer bufferid
     public void buffer_set(long bufferid, String property, String value) {
+
         Weechat.buffer_set(bufferid, property, value); //todo
     }
     // Callback for input received
@@ -83,9 +92,13 @@ class WeechatTest implements WeechatAPI {
 
     // Nicklist related
     public long nicklist_add_nick(long bufferid, String nick, String color, String prefix) {
-        return Weechat.nicklist_add_nick(bufferid, nick, color, prefix); //todo
+        if (bufferid != 111 || !nick.equals("testName")) //todo todo
+            return 6L;
+        return 0;
     }
     public void nicklist_remove_nick(long bufferid, long nickid) {
+
+
         Weechat.nicklist_remove_nick(bufferid, nickid); //todo
     }
     public void nicklist_remove_all(long bufferid) {
