@@ -2,18 +2,29 @@ package eu.rationality.thetruth;
 
 import eu.rationality.thetruth.Weechat.WeechatCallException;
 import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.chat2.Chat;
 import org.jivesoftware.smack.chat2.ChatManager;
+import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
+import org.jivesoftware.smackx.delay.packet.DelayInformation;
+import org.jivesoftware.smackx.forward.packet.Forwarded;
+import org.jivesoftware.smackx.mam.MamManager;
+import org.jivesoftware.smackx.mam.element.MamPrefsIQ;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.stringprep.XmppStringprepException;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ChatBuffer extends Buffer {
-	private String jidStringFrom, jidStringTo;
+	private String jidStringFrom, jidStringTo, fromNickname;
 	private EntityBareJid jidTo;
 	private Server server;
 
@@ -28,7 +39,39 @@ public class ChatBuffer extends Buffer {
 		Weechat.getAPIInstance().buffer_set(nativeid, "display", "auto");
 		this.jidStringFrom = jidStringFrom;
 		this.jidStringTo = jidStringTo;
+		fromNickname = jidStringFrom.split("@", 2)[0];
 		this.server = server;
+
+		// TODO this might result in a double message, if the chat is opened due to a new received message
+		MamManager mamMan = MamManager.getInstanceFor(server.getCon());
+		try {
+			if (mamMan.isSupported()) { // TODO set mam catchup enabled?
+				MamManager.MamQueryArgs mamQueryArgs = MamManager.MamQueryArgs.builder().limitResultsToJid(jidTo).
+						setResultPageSizeTo(20).queryLastPage().build();
+				MamManager.MamQuery mamQuery = mamMan.queryArchive(mamQueryArgs);
+				LinkedList<Forwarded> list = new LinkedList<>();
+				boolean isComplete = false;
+				int count = 1;
+				do {
+					MamManager.MamQueryPage a = mamQuery.getPage();
+					list.addAll(a.getForwarded());
+					if(!mamQuery.isComplete())
+						mamQuery.pageNext(++count);
+					else
+						isComplete = true;
+				} while (!isComplete);
+				for (Forwarded forward: list) {
+					Message mes = Forwarded.extractMessagesFrom(Collections.singletonList(forward)).get(0);
+					String body = mes.getBody();
+					DelayInformation a = forward.getDelayInformation();
+					if(body != null) // TODO right timestamp??
+						printMsgDateTags(a.getStamp().toInstant().getEpochSecond(), mes.getFrom().toString(), mes.getBody(), "");
+				}
+			}
+		} catch (SmackException.NotConnectedException | SmackException.NoResponseException |
+				XMPPException.XMPPErrorException | InterruptedException | SmackException.NotLoggedInException e) {
+			LOGGER.log(Level.WARNING, "could not setup mam catchup");
+		}
 	}
 
 	@Override
@@ -48,6 +91,8 @@ public class ChatBuffer extends Buffer {
 	@Override
 	public void printMsgDateTags(long time, String sender, String data, String tags) {
 		String local = sender.split("@", 2)[0];
+		if (local.equals(fromNickname))
+			local = "me";
 		Weechat.getAPIInstance().print_date_tags(nativeid, time, tags + ",nick_"+sender+",host_"+sender, local + "\t" + data);
 	}
 
