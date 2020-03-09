@@ -103,6 +103,10 @@ public class ChatBuffer extends Buffer {
 				BufferManager bm = BufferManager.getinstance();
 				bm.deregister(nativeid);
 				break;
+			case "query":
+			case "join":
+				server.getServerbuffer().receiveCommand(cmd, args);
+				break;
 		}
 		return super.receiveCommand(cmd, args);
 	}

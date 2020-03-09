@@ -119,6 +119,10 @@ public class MucBuffer extends Buffer  {
                 BufferManager bm = BufferManager.getinstance();
                 bm.deregister(nativeid);
                 break;
+            case "query":
+            case "join":
+                localServer.getServerbuffer().receiveCommand(cmd, args);
+                break;
         }
         return super.receiveCommand(cmd, args);
     }
