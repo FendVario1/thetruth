@@ -4,7 +4,7 @@
 #include "config.h"
 #include "command.h"
 
-THE_TRUTH_COMMAND_CALLBACK(adduser_cb) {
+THE_TRUTH_COMMAND_CALLBACK(change_user_cb) {
 	int retVal;
 	(void) pointer;
 	(void) data;
@@ -34,12 +34,12 @@ THE_TRUTH_COMMAND_CALLBACK(adduser_cb) {
 }
 
 void the_truth_command_init() {
-	weechat_hook_command("tadduser", 
+	weechat_hook_command("changeuser",
 		N_("add new user credentials for jabber"),
 		N_("<Jabber_ID> <Jabber_Pass>"),
 		N_("Jabber_ID: JabberID to use"
 			"Jabber_Pass: Password for JabberID"),
-		NULL, &the_truth_command_adduser_cb, NULL, NULL);
+		NULL, &the_truth_command_change_user_cb, NULL, NULL);
 	weechat_hook_command("query",
 		N_("start chatting with a user"),
 		N_("<Jabber_ID>"),
@@ -52,4 +52,16 @@ void the_truth_command_init() {
 			"Nickname: Your nickname on the server"
 			"Password: the servers password"),
 		NULL, &xmpp_command_cb, "join", NULL);
+	weechat_hook_command("add",
+		N_("add a user to your roster"),
+		N_("<Jabber_ID> <Nickname> [Group1] [Group2] [GroupX]"),
+		N_("Jabber_ID: JabberID of user"
+			"Nickname: nickname for roster entry"
+			"Group: group for entry"),
+		NULL, &xmpp_command_cb, "add", NULL);
+	weechat_hook_command("remove",
+		N_("remove a user from your roster"),
+		N_("<Nickname>"),
+		N_("Nickname: nickname of roster entry"),
+		NULL, &xmpp_command_cb, "remove", NULL);
 }

@@ -1,5 +1,8 @@
 package eu.rationality.thetruth;
 
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 import org.jivesoftware.smack.roster.Roster;
@@ -24,6 +27,10 @@ public class ServerBuffer extends Buffer {
 	
 	public Nicklist getNicklist() {
 		return nicklist;
+	}
+
+	public Server getServer() {
+		return server;
 	}
 	
 	public void printSelfMessage(String receiver, String msg) {
@@ -54,36 +61,55 @@ public class ServerBuffer extends Buffer {
 	@Override
 	public int receiveCommand(String cmd, String[] args) {
 		switch(cmd) {
-		case "query":
-			if (args.length != 2) {
-				printErr("Query expects one parameter: /query <jid>");
-				return Weechat.WEECHAT_RC_ERROR;
-			}
-			try {
-				EntityBareJid jid = JidCreate.entityBareFrom(args[1]);
-				server.getChat(jid);
-			} catch (XmppStringprepException e) {
-				printErr(args[1] + " does not constitute a valid jid");
-				return Weechat.WEECHAT_RC_ERROR;
-			}
-			break;
-		case "join":
-			if (args.length < 3 || args.length > 4) {
-				printErr("Join expects three parameters: /join <jid> <nickname> [password]");
-				return Weechat.WEECHAT_RC_ERROR;
-			}
-			try {
-				String pass = null;
-				if (args.length == 4) {
-					pass = args[3];
+			case "query":
+				if (args.length != 2) {
+					printErr("Query expects one parameter: /query <jid>");
+					return Weechat.WEECHAT_RC_ERROR;
 				}
-				EntityBareJid jid = JidCreate.entityBareFrom(args[1]);
-				server.getMuc(jid, args[2], pass);
-			} catch (XmppStringprepException e) {
-				printErr(args[1] + " does not constitute a valid jid");
-				return Weechat.WEECHAT_RC_ERROR;
-			}
-			break;
+				try {
+					EntityBareJid jid = JidCreate.entityBareFrom(args[1]);
+					server.getChat(jid);
+				} catch (XmppStringprepException e) {
+					printErr(args[1] + " does not constitute a valid jid");
+					return Weechat.WEECHAT_RC_ERROR;
+				}
+				break;
+			case "join":
+				if (args.length < 3 || args.length > 4) {
+					printErr("Join expects three parameters: /join <jid> <nickname> [password]");
+					return Weechat.WEECHAT_RC_ERROR;
+				}
+				try {
+					String pass = null;
+					if (args.length == 4) {
+						pass = args[3];
+					}
+					EntityBareJid jid = JidCreate.entityBareFrom(args[1]);
+					server.getMuc(jid, args[2], pass);
+				} catch (XmppStringprepException e) {
+					printErr(args[1] + " does not constitute a valid jid");
+					return Weechat.WEECHAT_RC_ERROR;
+				}
+				break;
+			case "add":
+				if(args.length < 3) {
+					printErr("Add expects at least two parameters: /add <jid> <nickname> [group1] [group2] [...]");
+					return Weechat.WEECHAT_RC_ERROR;
+				}
+				try {
+					String[] groups = new String[args.length - 3];
+					System.arraycopy(args, 3, groups, 0, args.length - 3);
+					return nicklist.addUser(JidCreate.bareFrom(args[1]), args[2], groups);
+				} catch (XmppStringprepException e) {
+					printErr(args[1] + " does not constitute a valid jid");
+					return Weechat.WEECHAT_RC_ERROR;
+				}
+			case "remove":
+				if(args.length != 2) {
+					printErr("Remove expects one parameter: /remove <nickname>");
+					return Weechat.WEECHAT_RC_ERROR;
+				}
+				return nicklist.removeUser(args[1]);
 		}
 		return super.receiveCommand(cmd, args);
 	}

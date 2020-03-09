@@ -3,10 +3,13 @@ package eu.rationality.thetruth;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jivesoftware.smack.PresenceListener;
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterEntries;
@@ -14,6 +17,10 @@ import org.jivesoftware.smack.roster.RosterEntry;
 import org.jivesoftware.smack.roster.RosterListener;
 import org.jxmpp.jid.BareJid;
 import org.jxmpp.jid.Jid;
+import org.jxmpp.jid.impl.JidCreate;
+import org.jxmpp.stringprep.XmppStringprepException;
+
+// !TODO show nicklist in Chatbuffers accociated to Servers
 
 public class Nicklist implements RosterEntries, RosterListener, PresenceListener {
 	private ServerBuffer buffer;
@@ -106,6 +113,57 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 	@Override
 	public void processPresence(Presence presence) {
 		presenceChanged(presence);
+	}
+
+	public int addUser (BareJid address, String nickname, String[] groups) {
+		Weechat.print(0, address.toString() + " " + nickname);
+		try {
+			roster.createEntry(address, nickname, groups);
+		} catch (SmackException.NotLoggedInException | SmackException.NoResponseException |
+				XMPPException.XMPPErrorException | SmackException.NotConnectedException | InterruptedException e) {
+			LOGGER.log(Level.INFO, "could not create roster entry for " + address.toString(), e);
+			return Weechat.WEECHAT_RC_ERROR;
+		}
+		return Weechat.WEECHAT_RC_OK;
+	}
+
+	public int removeUser (String nickname) {
+		try {
+			RosterEntry entry = getRosterEntryFromString(nickname);
+			if(entry == null) {
+				LOGGER.log(Level.INFO, "could not remove roster entry " + nickname);
+				return Weechat.WEECHAT_RC_ERROR;
+			}
+			roster.removeEntry(entry);
+		} catch (SmackException.NotConnectedException | SmackException.NotLoggedInException |
+				XMPPException.XMPPErrorException | SmackException.NoResponseException | InterruptedException e) {
+			LOGGER.log(Level.INFO, "could not remove roster entry " + nickname, e);
+			return Weechat.WEECHAT_RC_ERROR;
+		}
+		return Weechat.WEECHAT_RC_OK;
+	}
+
+	/*public int editUser (BareJid address, String nickname, String[] groups) {
+		// TODO implement
+	}*/
+
+	private RosterEntry getRosterEntryFromString (String nickname) {
+		Set<RosterEntry> entries = roster.getEntries();
+		RosterEntry entry = null;
+		for (RosterEntry entr : entries) {
+			if(nickname.equals(entr.getName())) {
+				entry = entr;
+				break;
+			}
+		}
+		if(entry == null) {
+			for (RosterEntry entr : entries) {
+				if(entr.getJid().toString().equals(nickname)) {
+					entry = entr;
+				}
+			}
+		}
+		return entry;
 	}
 
 }
