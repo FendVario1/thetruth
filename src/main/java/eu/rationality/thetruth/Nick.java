@@ -32,15 +32,14 @@ public class Nick {
 	public void updatePresence(Presence presence) {
 		String prefix;
 		String prefixcolor;
-		
-		if (presence.isAvailable()) {
-			prefix = AVAILABLE;
-			prefixcolor = "green";
-			buffer.print_prefix("join", name + " (" + jid + ") connected");
-		} else if (presence.isAway()) {
+		if (presence.isAway()) {
 			prefix = DND;
 			prefixcolor = "yellow";
 			buffer.print_prefix("network", name + " (" + jid + ") is now away");
+		} else if (presence.isAvailable()) {
+			prefix = AVAILABLE;
+			prefixcolor = "green";
+			buffer.print_prefix("join", name + " (" + jid + ") connected");
 		} else {
 			prefix = OFFLINE;
 			prefixcolor = "red";
