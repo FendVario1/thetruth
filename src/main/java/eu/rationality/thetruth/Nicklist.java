@@ -116,7 +116,7 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 	}
 
 	public int addUser (BareJid address, String nickname, String[] groups) {
-		Weechat.print(0, address.toString() + " " + nickname);
+		Weechat.getAPIInstance().print(0, address.toString() + " " + nickname);
 		try {
 			roster.createEntry(address, nickname, groups);
 		} catch (SmackException.NotLoggedInException | SmackException.NoResponseException |
