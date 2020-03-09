@@ -157,7 +157,7 @@ public class Server {
 		});
 		ChatManager.getInstanceFor(con).addIncomingListener(new IncomingChatMessageListener() {
 
-			@Override // TODO create Userbuffer etc.
+			@Override
 			public void newIncomingMessage(EntityBareJid from, Message message, Chat chat) {
 				Weechat.getAPIInstance().register_pending_operation(() -> {
 					Localpart lp = from.getLocalpartOrNull();
@@ -165,7 +165,7 @@ public class Server {
 						serverbuffer.printMsgDateTags(System.currentTimeMillis() / 1000L, from.asEntityBareJidString(),
 								message.getBody(), "notify_private,log1");
 					}
-					else { // is User / MUC chat
+					else { // is User / MUC chat??
 						ChatBuffer chatbuffer = getChat(from.asEntityBareJid());
 						chatbuffer.printMsgDateTags(System.currentTimeMillis() / 1000L, from.asEntityBareJidString(),
 								message.getBody(), "notify_private,log1");
@@ -251,6 +251,7 @@ public class Server {
 			if (e == null) {
 				LOGGER.log(Level.WARNING, "Nickname could not be loaded from bookmark, could not connect to "
 						+ a.asEntityBareJidString());
+				break;
 			} else {
 				c = e.toString();
 			}
@@ -277,10 +278,12 @@ public class Server {
 		try {
 			b = new ChatBuffer(getJID(), jid.asEntityBareJidString(), this);
 		} catch (Weechat.WeechatCallException | XmppStringprepException e) {
-			LOGGER.log(Level.WARNING, "could not open chat " + jid.asEntityBareJidString(), e);
+			LOGGER.log(Level.WARNING, "could not open chat " + jid.asEntityBareJidString() + " with user " +
+					jid.asEntityBareJidString(), e);
 			return null;
 		}
 		chatBuffer.put(jid, b);
+		// add to nicklists
 		return b;
 	}
 
