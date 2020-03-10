@@ -43,20 +43,20 @@ void the_truth_config_init(){
 		, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 	// Setting up config options
-	the_truth_config_user_pass1 = weechat_config_new_option(the_truth_config_file, the_truth_config_user_section, 
-		"Jabber_Pass1", "string", N_("Jabber Password 1"), NULL, 0, 0, "", NULL, 0, 
+	the_truth_config_user_pass1 = weechat_config_new_option(the_truth_config_file, the_truth_config_user_section,
+		"Jabber_Pass1", "string", N_("Jabber Password 1"), NULL, 0, 0, "", NULL, 0,
 		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
-	the_truth_config_user_id1 = weechat_config_new_option(the_truth_config_file, the_truth_config_user_section, 
-		"Jabber_ID1", "string", N_("Jabber ID 1"), NULL, 0, 0, "", NULL, 0, 
+	the_truth_config_user_id1 = weechat_config_new_option(the_truth_config_file, the_truth_config_user_section,
+		"Jabber_ID1", "string", N_("Jabber ID 1"), NULL, 0, 0, "", NULL, 0,
 		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
-	the_truth_config_user_pass2 = weechat_config_new_option(the_truth_config_file, the_truth_config_user_section, 
-		"Jabber_Pass2", "string", N_("Jabber Password 2"), NULL, 0, 0, "", NULL, 0, 
+	the_truth_config_user_pass2 = weechat_config_new_option(the_truth_config_file, the_truth_config_user_section,
+		"Jabber_Pass2", "string", N_("Jabber Password 2"), NULL, 0, 0, "", NULL, 0,
 		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
-	the_truth_config_user_id2 = weechat_config_new_option(the_truth_config_file, the_truth_config_user_section, 
-		"Jabber_ID2", "string", N_("Jabber ID 2"), NULL, 0, 0, "", NULL, 0, 
+	the_truth_config_user_id2 = weechat_config_new_option(the_truth_config_file, the_truth_config_user_section,
+		"Jabber_ID2", "string", N_("Jabber ID 2"), NULL, 0, 0, "", NULL, 0,
 		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 
@@ -77,6 +77,7 @@ void the_truth_config_write() {
 		weechat_printf(NULL, "config write failed in %s\n", __func__);
 	}
 }
+
 
 void the_truth_config_free(){
 	weechat_config_free(the_truth_config_file);

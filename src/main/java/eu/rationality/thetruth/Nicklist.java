@@ -166,4 +166,9 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 		return entry;
 	}
 
+	protected BareJid getJidFromString (String name) {
+		RosterEntry entr = getRosterEntryFromString(name);
+		return entr == null ? null : entr.getJid();
+	}
+
 }

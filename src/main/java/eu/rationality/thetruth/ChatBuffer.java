@@ -64,7 +64,7 @@ public class ChatBuffer extends Buffer {
 					Message mes = Forwarded.extractMessagesFrom(Collections.singletonList(forward)).get(0);
 					String body = mes.getBody();
 					DelayInformation a = forward.getDelayInformation();
-					if(body != null) // TODO right timestamp??
+					if(body != null)
 						printMsgDateTags(a.getStamp().toInstant().getEpochSecond(), mes.getFrom().toString(), mes.getBody(), "");
 				}
 			}
