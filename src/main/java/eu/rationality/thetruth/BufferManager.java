@@ -11,7 +11,7 @@ public class BufferManager {
 
 	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 	
-	public static BufferManager getinstance() {
+	public static BufferManager getInstance() {
 		if (instance == null) {
 			instance = new BufferManager();
 		}
@@ -22,7 +22,7 @@ public class BufferManager {
 		this.id2buffer = new HashMap<>();
 	}
 	
-	public Buffer byid(long id) {
+	public Buffer byId(long id) {
 		return id2buffer.get(id);
 	}
 	

@@ -28,15 +28,16 @@ public class MucBuffer extends Buffer  {
 
     private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
-    public MucBuffer (String jidStringTo, String servername, String nickname, String password,
+    public MucBuffer (String jidStringTo, String serverName, String nickname, String password,
                       Server localServer) throws Weechat.WeechatCallException, XmppStringprepException {
-        super(servername);
+        super(serverName);
         chatJid = JidCreate.from(jidStringTo).asEntityBareJidIfPossible();
         try {
             ServiceDiscoveryManager sm = ServiceDiscoveryManager.getInstanceFor(localServer.getCon());
             boolean ret = sm.supportsFeature(chatJid, "http://jabber.org/protocol/muc");
             if (!ret) {
-                Weechat.getAPIInstance().print(localServer.getServerbuffer().getNativeId(), jidStringTo + " is not a valid MUC!");
+                Weechat.getAPIInstance().print(localServer.getServerBuffer().getNativeId(),
+                        jidStringTo + " is not a valid MUC!");
             }
         } catch (SmackException.NoResponseException | XMPPException.XMPPErrorException |
                 SmackException.NotConnectedException | InterruptedException e) {
@@ -62,7 +63,8 @@ public class MucBuffer extends Buffer  {
                     chat.join(name, password);
                 }
             } catch (MultiUserChatException.NotAMucServiceException e) {
-                Weechat.getAPIInstance().print(localServer.getServerbuffer().nativeid, jidStringTo + " is not a valid MUC!");
+                Weechat.getAPIInstance().print(localServer.getServerBuffer().nativeId,
+                        jidStringTo + " is not a valid MUC!");
                 return;
             } catch (XMPPException.XMPPErrorException | InterruptedException | SmackException.NoResponseException |
                     SmackException.NotConnectedException e) {
@@ -90,9 +92,10 @@ public class MucBuffer extends Buffer  {
             }
         };
         chat.addMessageListener(messageListener);
-        Weechat.getAPIInstance().buffer_set(nativeid, "title", "Chatroom: " + chat.getRoom() + " " + localServer.getPostfix()); // TODO get other roomname?
-        Weechat.getAPIInstance().buffer_set(nativeid, "nicklist", "1");
-        Weechat.getAPIInstance().buffer_set(nativeid, "display", "auto");
+        Weechat.getAPIInstance().buffer_set(nativeId, "title",
+                "Chatroom: " + chat.getRoom() + " " + localServer.getPostfix()); // TODO get other roomname?
+        Weechat.getAPIInstance().buffer_set(nativeId, "nicklist", "1");
+        Weechat.getAPIInstance().buffer_set(nativeId, "display", "auto");
 
         this.occupantsList = new Occupants(this, chat);
         chat.addParticipantListener(occupantsList);
@@ -117,12 +120,12 @@ public class MucBuffer extends Buffer  {
     public int receiveCommand(String cmd, String[] args) {
         switch(cmd) {
             case "close":
-                BufferManager bm = BufferManager.getinstance();
-                bm.deregister(nativeid);
+                BufferManager bm = BufferManager.getInstance();
+                bm.deregister(nativeId);
                 break;
             case "query":
             case "join":
-                localServer.getServerbuffer().receiveCommand(cmd, args);
+                localServer.getServerBuffer().receiveCommand(cmd, args);
                 break;
         }
         return super.receiveCommand(cmd, args);
@@ -136,7 +139,7 @@ public class MucBuffer extends Buffer  {
         chat.removeMessageListener(messageListener);
         chat.removeParticipantListener(occupantsList);
         chat.removeParticipantStatusListener(occupantsList);
-        Weechat.getAPIInstance().buffer_close_callback(nativeid);
+        Weechat.getAPIInstance().buffer_close_callback(nativeId);
         try {
             chat.leave();
         } catch (SmackException.NotConnectedException | InterruptedException e) {

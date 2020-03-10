@@ -4,7 +4,6 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jxmpp.jid.BareJid;
 
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Nick {
@@ -42,7 +41,7 @@ public class Nick {
 	}
 
 	public void deregisterBuffer(Buffer buffer) {
-		buffers.removeIf((b) -> b.getBuf().nativeid == buffer.nativeid);
+		buffers.removeIf((b) -> b.getBuf().nativeId == buffer.nativeId);
 	}
 
 	public void updateInfo(BareJid jid, String name) {
@@ -60,15 +59,15 @@ public class Nick {
 		if (presence.isAway()) {
 			prefix = DND;
 			prefixColor = "yellow";
-			buffer.print_prefix("network", name + " (" + jid + ") is now away");
+			buffer.printPrefix("network", name + " (" + jid + ") is now away");
 		} else if (presence.isAvailable()) {
 			prefix = AVAILABLE;
 			prefixColor = "green";
-			buffer.print_prefix("join", name + " (" + jid + ") connected");
+			buffer.printPrefix("join", name + " (" + jid + ") connected");
 		} else {
 			prefix = OFFLINE;
 			prefixColor = "red";
-			buffer.print_prefix("quit", name + " (" + jid + ") disconnected");
+			buffer.printPrefix("quit", name + " (" + jid + ") disconnected");
 		}
 		updateBuffers();
 	}

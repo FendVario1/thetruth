@@ -49,8 +49,8 @@ public class TruthLogger {
         @Override
         public void publish(LogRecord record) {
             DateFormat simple = new SimpleDateFormat("HH:mm:ss");
-            Weechat.getAPIInstance().print(buffer, simple.format(new Date(record.getMillis())) + " at " + record.getSourceClassName() + "."
-                    + record.getSourceMethodName());
+            Weechat.getAPIInstance().print(buffer, simple.format(new Date(record.getMillis())) + " at "
+                    + record.getSourceClassName() + "." + record.getSourceMethodName());
             Level level = record.getLevel();
             if (level == Level.WARNING || level == Level.SEVERE) {
                 Weechat.getAPIInstance().printerr(buffer, record.getLevel() + " " + record.getMessage());

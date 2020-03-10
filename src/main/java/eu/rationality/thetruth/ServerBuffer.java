@@ -1,9 +1,6 @@
 package eu.rationality.thetruth;
 
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -23,9 +20,9 @@ public class ServerBuffer extends Buffer {
 	
 	public ServerBuffer(Server server, Roster roster) throws WeechatCallException {
 		super(server.getJID());
-		Weechat.getAPIInstance().buffer_set(nativeid, "title", "Account: " + server.getJID());
-		Weechat.getAPIInstance().buffer_set(nativeid, "nicklist", "1");
-		Weechat.getAPIInstance().buffer_set(nativeid, "display", "auto");
+		Weechat.getAPIInstance().buffer_set(nativeId, "title", "Account: " + server.getJID());
+		Weechat.getAPIInstance().buffer_set(nativeId, "nicklist", "1");
+		Weechat.getAPIInstance().buffer_set(nativeId, "display", "auto");
 		this.server = server;
 		this.nicklist = new Nicklist(this, roster);
 	}
@@ -39,7 +36,7 @@ public class ServerBuffer extends Buffer {
 	}
 	
 	public void printSelfMessage(String receiver, String msg) {
-		server.getServerbuffer().printMsgDateTags(0, "me", receiver + ": " + msg, "notify_msg,self_msg,log1");
+		server.getServerBuffer().printMsgDateTags(0, "me", receiver + ": " + msg, "notify_msg,self_msg,log1");
 	}
 	
 	@Override
@@ -48,7 +45,7 @@ public class ServerBuffer extends Buffer {
 		// probably remove, as it can not support MUC chats
 		String[] split = Pattern.compile(":\\s+").split(input, 2);
 		if (split.length != 2) {
-			Weechat.getAPIInstance().printerr(nativeid, "Failed to determine receiver for message: " + input);
+			Weechat.getAPIInstance().printerr(nativeId, "Failed to determine receiver for message: " + input);
 			return Weechat.WEECHAT_RC_ERROR;
 		}
 		try {
@@ -78,13 +75,15 @@ public class ServerBuffer extends Buffer {
 					}
 					server.getChat(jid.asEntityBareJidOrThrow());
 				} catch (IllegalStateException | XmppStringprepException e) {
-					Weechat.getAPIInstance().printerr(nativeid, args[1] + " is neither a valid jid nor a known nickname");
+					Weechat.getAPIInstance().printerr(nativeId,
+							args[1] + " is neither a valid jid nor a known nickname");
 					return Weechat.WEECHAT_RC_ERROR;
 				}
 				break;
 			case "join":
 				if (args.length < 3 || args.length > 4) {
-					Weechat.getAPIInstance().printerr(nativeid, "Join expects three parameters: /join <jid> <nickname> [password]");
+					Weechat.getAPIInstance().printerr(nativeId,
+							"Join expects three parameters: /join <jid> <nickname> [password]");
 					return Weechat.WEECHAT_RC_ERROR;
 				}
 				try {
@@ -95,13 +94,14 @@ public class ServerBuffer extends Buffer {
 					EntityBareJid jid = JidCreate.entityBareFrom(args[1]);
 					server.getMuc(jid, args[2], pass);
 				} catch (XmppStringprepException e) {
-					Weechat.getAPIInstance().printerr(nativeid, args[1] + " does not constitute a valid jid");
+					Weechat.getAPIInstance().printerr(nativeId, args[1] + " does not constitute a valid jid");
 					return Weechat.WEECHAT_RC_ERROR;
 				}
 				break;
 			case "add":
 				if(args.length < 3) {
-					Weechat.getAPIInstance().printerr(nativeid, "Add expects at least two parameters: /add <jid> <nickname> [group1] [group2] [...]");
+					Weechat.getAPIInstance().printerr(nativeId,
+							"Add expects at least two parameters: /add <jid> <nickname> [group1] [group2] [...]");
 					return Weechat.WEECHAT_RC_ERROR;
 				}
 				try {
@@ -109,15 +109,16 @@ public class ServerBuffer extends Buffer {
 					System.arraycopy(args, 3, groups, 0, args.length - 3);
 					return nicklist.addUser(JidCreate.bareFrom(args[1]), args[2], groups);
 				} catch (XmppStringprepException e) {
-					Weechat.getAPIInstance().printerr(nativeid, args[1] + " does not constitute a valid jid");
+					Weechat.getAPIInstance().printerr(nativeId, args[1] + " does not constitute a valid jid");
 					return Weechat.WEECHAT_RC_ERROR;
 				}
 			case "remove":
 				if(args.length != 2) {
-					Weechat.getAPIInstance().printerr(nativeid, "Remove expects one parameter: /remove <nickname>");
+					Weechat.getAPIInstance().printerr(nativeId, "Remove expects one parameter: /remove <nickname>");
 					return Weechat.WEECHAT_RC_ERROR;
 				}
 				return nicklist.removeUser(args[1]);
+			default:
 		}
 		return super.receiveCommand(cmd, args);
 	}

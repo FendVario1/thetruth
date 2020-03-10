@@ -7,7 +7,7 @@ import org.jivesoftware.smackx.muc.Occupant;
 import org.jxmpp.jid.EntityFullJid;
 
 public class TruthOccupant {
-    private long nativeID;
+    private long nativeId;
     private MucBuffer buffer;
     private EntityFullJid jid;
     private Occupant occ;
@@ -41,7 +41,7 @@ public class TruthOccupant {
         role = occ.getRole();
         affiliation = occ.getAffiliation();
         String prefix;
-        String prefixcolor;
+        String prefixColor;
 
         if (role == MUCRole.moderator) {
             prefix = MODERATOR;
@@ -50,29 +50,30 @@ public class TruthOccupant {
             } else if (affiliation == MUCAffiliation.owner) {
                 prefix = OWNER;
             }
-            prefixcolor = "green";
+            prefixColor = "green";
         } else if (role == MUCRole.participant) {
             prefix = PARTICIPANT;
-            prefixcolor = "yellow";
+            prefixColor = "yellow";
         } else if (role == MUCRole.visitor) {
             prefix = VISITOR;
-            prefixcolor = "red";
+            prefixColor = "red";
         } else {
             prefix = NONE;
-            prefixcolor = "white";
+            prefixColor = "white";
         }
 
-        Weechat.getAPIInstance().nicklist_nick_set(buffer.getNativeId(), nativeID, "prefix", prefix + " ");
-        Weechat.getAPIInstance().nicklist_nick_set(buffer.getNativeId(), nativeID, "prefixcolor", prefixcolor);
+        Weechat.getAPIInstance().nicklist_nick_set(buffer.getNativeId(), nativeId, "prefix", prefix + " ");
+        Weechat.getAPIInstance().nicklist_nick_set(buffer.getNativeId(), nativeId, "prefixcolor", prefixColor);
     }
 
     private void loadNickname() {
-        Weechat.getAPIInstance().nicklist_remove_nick(buffer.getNativeId(), nativeID);
-        this.nativeID = Weechat.getAPIInstance().nicklist_add_nick(buffer.getNativeId(), jid.getResourceOrEmpty().toString(), "", "");
+        Weechat.getAPIInstance().nicklist_remove_nick(buffer.getNativeId(), nativeId);
+        this.nativeId = Weechat.getAPIInstance().nicklist_add_nick(buffer.getNativeId(),
+                jid.getResourceOrEmpty().toString(), "", "");
     }
 
     public void destroy() {
-        Weechat.getAPIInstance().nicklist_remove_nick(buffer.getNativeId(), nativeID);
-        nativeID = 0;
+        Weechat.getAPIInstance().nicklist_remove_nick(buffer.getNativeId(), nativeId);
+        nativeId = 0;
     }
 }

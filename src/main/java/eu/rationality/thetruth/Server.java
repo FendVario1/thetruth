@@ -44,7 +44,7 @@ public class Server {
 	private String password;
 	private Integer port;
 	private String postfix;
-	private ServerBuffer serverbuffer;
+	private ServerBuffer serverBuffer;
 	private ConcurrentHashMap<EntityBareJid, ChatBuffer> chatBuffer = new ConcurrentHashMap<>();
 	private ConcurrentHashMap<EntityBareJid, MucBuffer> mucBuffer = new ConcurrentHashMap<>();
 
@@ -91,8 +91,8 @@ public class Server {
 		this.port = port;
 	}
 
-	public ServerBuffer getServerbuffer() {
-		return serverbuffer;
+	public ServerBuffer getServerBuffer() {
+		return serverBuffer;
 	}
 
 	public ConcurrentHashMap<EntityBareJid, ChatBuffer> getChatBuffer() {
@@ -124,16 +124,16 @@ public class Server {
 		var conf = buildConfig();
 		con = new XMPPTCPConnection(conf);
 		Roster roster = Roster.getInstanceFor(con);
-		if (this.serverbuffer == null) {
-			this.serverbuffer = new ServerBuffer(this, roster);
+		if (this.serverBuffer == null) {
+			this.serverBuffer = new ServerBuffer(this, roster);
 		}
 		Weechat.getAPIInstance().print(0, "Created serverbuffer");
-		serverbuffer.print("Connecting to server");
+		serverBuffer.print("Connecting to server");
 		con.addConnectionListener(new ConnectionListener() {
 			@Override
 			public void connectionClosedOnError(Exception e) {
 				Weechat.getAPIInstance().register_pending_operation(() -> {
-					serverbuffer.printErr("Connection closed on error(" + e.getClass() + "): " + e.getMessage());
+					serverBuffer.printErr("Connection closed on error(" + e.getClass() + "): " + e.getMessage());
 					return Weechat.WEECHAT_RC_OK;
 				});
 			}
@@ -141,7 +141,7 @@ public class Server {
 			@Override
 			public void connectionClosed() {
 				Weechat.getAPIInstance().register_pending_operation(() -> {
-					serverbuffer.print("Connection to server closed");
+					serverBuffer.print("Connection to server closed");
 					return Weechat.WEECHAT_RC_OK;
 				});
 
@@ -150,7 +150,7 @@ public class Server {
 			@Override
 			public void connected(XMPPConnection connection) {
 				Weechat.getAPIInstance().register_pending_operation(() -> {
-					serverbuffer.print("Connection to server " + connection.getHost() + " on port "
+					serverBuffer.print("Connection to server " + connection.getHost() + " on port "
 							+ connection.getPort() + " succeeded");
 					return Weechat.WEECHAT_RC_OK;
 				});
@@ -160,7 +160,7 @@ public class Server {
 			@Override
 			public void authenticated(XMPPConnection connection, boolean resumed) {
 				Weechat.getAPIInstance().register_pending_operation(() -> {
-					serverbuffer.print("Authenticated as " + connection.getUser());
+					serverBuffer.print("Authenticated as " + connection.getUser());
 					return Weechat.WEECHAT_RC_OK;
 				});
 			}
@@ -172,15 +172,16 @@ public class Server {
 				Weechat.getAPIInstance().register_pending_operation(() -> {
 					Localpart lp = from.getLocalpartOrNull();
 					if (lp == null) {
-						serverbuffer.printMsgDateTags(System.currentTimeMillis() / 1000L, from.asEntityBareJidString(),
+						serverBuffer.printMsgDateTags(System.currentTimeMillis() / 1000L, from.asEntityBareJidString(),
 								message.getBody(), "notify_private,log1");
 					}
 					else { // is User / MUC chat??
 						EntityBareJid fromJid = from.asEntityBareJid();
 						boolean isChatOpened = isChatOpen(fromJid);
-						ChatBuffer chatbuffer = getChat(fromJid);
+						ChatBuffer chatBuffer = getChat(fromJid);
 						if(isChatOpened)
-							chatbuffer.printMsgDateTags(System.currentTimeMillis() / 1000L, from.asEntityBareJidString(),
+							chatBuffer.printMsgDateTags(
+									System.currentTimeMillis() / 1000L, from.asEntityBareJidString(),
 									message.getBody(), "notify_private,log1");
 					}
 					return Weechat.WEECHAT_RC_OK;
@@ -201,7 +202,7 @@ public class Server {
 			@Override
 			public void reconnectionFailed(Exception e) {
 				Weechat.getAPIInstance().register_pending_operation(() -> {
-					serverbuffer.printErr("Failed reconnection attempt");
+					serverBuffer.printErr("Failed reconnection attempt");
 					return Weechat.WEECHAT_RC_OK;
 				});
 			}
@@ -209,17 +210,18 @@ public class Server {
 			@Override
 			public void reconnectingIn(int seconds) {
 				Weechat.getAPIInstance().register_pending_operation(() -> {
-					serverbuffer.printErr("Reconnection in " + seconds + " seconds");
+					serverBuffer.printErr("Reconnection in " + seconds + " seconds");
 					return Weechat.WEECHAT_RC_OK;
 				});
 			}
 		});
 		// Roster setup
 		try {
-			RosterListener rl = (RosterListener) WeechatDelayedExectorInvocationHandler.createProxy(serverbuffer.getNicklist(), new Class[] {RosterListener.class});
+			RosterListener rl = (RosterListener) WeechatDelayedExectorInvocationHandler.
+					createProxy(serverBuffer.getNicklist(), new Class[] {RosterListener.class});
 			// Invokes Nicklist.rosterEntries() once for the initial setup of nicklist synchronously
 			// and invoke all subsequent roster updates asynchronously but guarded by the proxy above
-			roster.getEntriesAndAddListener(rl, serverbuffer.getNicklist());
+			roster.getEntriesAndAddListener(rl, serverBuffer.getNicklist());
 		} catch (Exception e) {
 			Weechat.getAPIInstance().print(0, "Failed to add RoosterListener: " + e.toString());
 			Weechat.getAPIInstance().print_backtrace(e);
@@ -243,13 +245,13 @@ public class Server {
 						if (from == null) {
 							from = carbonCopy.getFrom().toString();
 						}
-						serverbuffer.printSelfMessage(from, carbonCopy.getBody());
+						serverBuffer.printSelfMessage(from, carbonCopy.getBody());
 						return Weechat.WEECHAT_RC_OK;
 					});
 				}
 			});
 		}
-		
+
 		Presence presence = new Presence(Presence.Type.available);
 		presence.setStatus("Started up and running");
 		// Send the stanza (assume we have an XMPPConnection instance called "con").
@@ -279,16 +281,16 @@ public class Server {
 	}
 
 	public ChatBuffer getChat(EntityBareJid jid){
-		ChatBuffer chatbuffer = chatBuffer.get(jid);
-		if(chatbuffer == null) {
-			chatbuffer = openChat(jid);
+		ChatBuffer chatBuffer = this.chatBuffer.get(jid);
+		if(chatBuffer == null) {
+			chatBuffer = openChat(jid);
 		}
-		return chatbuffer;
+		return chatBuffer;
 	}
 
 	private ChatBuffer openChat(EntityBareJid jid) {
 		if(jid.getDomain().toString().equals(domain) && jid.getLocalpart().toString().equals(user)){
-			Weechat.getAPIInstance().print(getServerbuffer().nativeid, "open a chat with your own Jid is not allowed");
+			Weechat.getAPIInstance().print(getServerBuffer().nativeId, "open a chat with your own Jid is not allowed");
 			return null;
 		}
 
@@ -306,8 +308,8 @@ public class Server {
 	}
 
 	private boolean isChatOpen(EntityBareJid jid) {
-		ChatBuffer chatbuffer = chatBuffer.get(jid);
-		return chatbuffer != null;
+		ChatBuffer chatBuffer = this.chatBuffer.get(jid);
+		return chatBuffer != null;
 	}
 
 	public void getMuc(EntityBareJid jid, String nickname, String password) {
@@ -320,12 +322,13 @@ public class Server {
 
 	private void openMuc(EntityBareJid jid, String nickname, String password) {
 		MucBuffer b;
-		String servername;
+		String serverName;
 		MultiUserChatManager cm = MultiUserChatManager.getInstanceFor(con);
 		try {
 			// TODO if(password == null) {
 			RoomInfo roomInfo = cm.getRoomInfo(jid);
-			// get roomInfo works only on password unprotected Chats; !TODO get info for password protected rooms & then update buffername
+			// get roomInfo works only on password unprotected Chats;
+			// !TODO get info for password protected rooms & then update buffername
 			b = new MucBuffer(jid.asEntityBareJidString(), roomInfo.getName(), nickname, password, this);
 		} catch (SmackException.NoResponseException | XMPPException.XMPPErrorException | NotConnectedException |
 				InterruptedException | Weechat.WeechatCallException | XmppStringprepException e) {

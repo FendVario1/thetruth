@@ -45,58 +45,58 @@ class WeechatRegular implements WeechatAPI {
 	}
 	
 
-	// Write to buffer with native bufferid
-	public void print(long bufferid, String str) {
-		Weechat.print(bufferid, str);
+	// Write to buffer with native bufferId
+	public void print(long bufferId, String str) {
+		Weechat.print(bufferId, str);
 	}
-	// Write to buffer with native bufferid with the specified weechat prefix
-	public void print_prefix(long bufferid, String prefix, String str) {
-		Weechat.print_prefix(bufferid, prefix, str);
+	// Write to buffer with native bufferId with the specified weechat prefix
+	public void print_prefix(long bufferId, String prefix, String str) {
+		Weechat.print_prefix(bufferId, prefix, str);
 	}
 	// Write with date (in seconds since epoch) and tags
-	public void print_date_tags(long bufferid, long date, String tags, String message) {
-		Weechat.print_date_tags(bufferid, date, tags, message);
+	public void print_date_tags(long bufferId, long date, String tags, String message) {
+		Weechat.print_date_tags(bufferId, date, tags, message);
 	}
 	// Create a named buffer returning the native buffer id
 	public long buffer_new(String name) {
 		return Weechat.buffer_new(name);
 	}
-	// Set a property for buffer bufferid
-	public void buffer_set(long bufferid, String property, String value) {
-		Weechat.buffer_set(bufferid, property, value);
+	// Set a property for buffer bufferId
+	public void buffer_set(long bufferId, String property, String value) {
+		Weechat.buffer_set(bufferId, property, value);
 	}
 	// Callback for input received
-	public int buffer_input_callback(long bufferid, String data) {
-		Buffer b = BufferManager.getinstance().byid(bufferid);
+	public int buffer_input_callback(long bufferId, String data) {
+		Buffer b = BufferManager.getInstance().byId(bufferId);
 		if (b == null) {
-			printerr(0, "Input callback received for buffer " + Long.toHexString(bufferid) +
+			printerr(0, "Input callback received for buffer " + Long.toHexString(bufferId) +
 					" which is not managed by the plugin");
 			return Weechat.WEECHAT_RC_ERROR;
 		}
 		return b.handleInput(data);
 	}
 	// Callback for buffer close events
-	public int buffer_close_callback(long bufferid) {
-		BufferManager.getinstance().deregister(bufferid);
+	public int buffer_close_callback(long bufferId) {
+		BufferManager.getInstance().deregister(bufferId);
 		return Weechat.WEECHAT_RC_OK;
 	}
 
 	// Nicklist related
-	public long nicklist_add_nick(long bufferid, String nick, String color, String prefix) {
-		return Weechat.nicklist_add_nick(bufferid, nick, color, prefix);
+	public long nicklist_add_nick(long bufferId, String nick, String color, String prefix) {
+		return Weechat.nicklist_add_nick(bufferId, nick, color, prefix);
 	}
-	public void nicklist_remove_nick(long bufferid, long nickid) {
-		Weechat.nicklist_remove_nick(bufferid, nickid);
+	public void nicklist_remove_nick(long bufferId, long nickid) {
+		Weechat.nicklist_remove_nick(bufferId, nickid);
 	}
-	public void nicklist_remove_all(long bufferid) {
-		Weechat.nicklist_remove_all(bufferid);
+	public void nicklist_remove_all(long bufferId) {
+		Weechat.nicklist_remove_all(bufferId);
 	}
-	public void nicklist_nick_set(long bufferid, long nickid, String property, String value) {
-		Weechat.nicklist_nick_set(bufferid, nickid, property, value);
+	public void nicklist_nick_set(long bufferId, long nickid, String property, String value) {
+		Weechat.nicklist_nick_set(bufferId, nickid, property, value);
 	}
 
-	public void printerr(long bufferid, String str) {
-		print_prefix(bufferid, "error", str);
+	public void printerr(long bufferId, String str) {
+		print_prefix(bufferId, "error", str);
 	}
 	
 	public void print_backtrace(Throwable t) {
@@ -186,8 +186,9 @@ class WeechatRegular implements WeechatAPI {
 		TruthLogger.initWeechatLogging(buffer_new("TheTruth Log"));
 	}
 
-	public int command_callback(long bufferid, String cmd, String[] args) {
-		Buffer b = BufferManager.getinstance().byid(bufferid);
+	public int command_callback(long bufferId, String cmd, String[] args) {
+		Buffer b = BufferManager.getInstance().byId(bufferId
+		);
 		if (b == null) {
 			// For hooked commands: legit behaviour: hooked command invoked on other (e.g. irc) buffer
 			return Weechat.WEECHAT_RC_OK;
