@@ -166,9 +166,12 @@ public class Server {
 								message.getBody(), "notify_private,log1");
 					}
 					else { // is User / MUC chat??
-						ChatBuffer chatbuffer = getChat(from.asEntityBareJid());
-						chatbuffer.printMsgDateTags(System.currentTimeMillis() / 1000L, from.asEntityBareJidString(),
-								message.getBody(), "notify_private,log1");
+						EntityBareJid fromJid = from.asEntityBareJid();
+						boolean isChatOpened = isChatOpen(fromJid);
+						ChatBuffer chatbuffer = getChat(fromJid);
+						if(isChatOpened)
+							chatbuffer.printMsgDateTags(System.currentTimeMillis() / 1000L, from.asEntityBareJidString(),
+									message.getBody(), "notify_private,log1");
 					}
 					return Weechat.WEECHAT_RC_OK;
 				});
@@ -290,6 +293,11 @@ public class Server {
 		chatBuffer.put(jid, b);
 		// add to nicklists
 		return b;
+	}
+
+	private boolean isChatOpen(EntityBareJid jid) {
+		ChatBuffer chatbuffer = chatBuffer.get(jid);
+		return chatbuffer != null;
 	}
 
 	public void getMuc(EntityBareJid jid, String nickname, String password) {

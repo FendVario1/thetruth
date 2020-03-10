@@ -42,7 +42,6 @@ public class ChatBuffer extends Buffer {
 		fromNickname = jidStringFrom.split("@", 2)[0];
 		this.server = server;
 
-		// TODO this might result in a double message, if the chat is opened due to a new received message
 		MamManager mamMan = MamManager.getInstanceFor(server.getCon());
 		try {
 			if (mamMan.isSupported()) { // TODO set mam catchup enabled?
