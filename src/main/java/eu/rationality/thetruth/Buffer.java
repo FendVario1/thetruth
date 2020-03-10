@@ -38,7 +38,7 @@ public abstract class Buffer {
 		
 	}
 	
-	public int receiveCommand(String cmd, String[] args) {
+	public int receiveCommand(String cmd, String[] args, Long bufferId) {
 		return Weechat.WEECHAT_RC_OK;
 	}
 	

@@ -15,9 +15,9 @@ struct t_config_option *the_truth_config_user_pass1 = NULL;
 struct t_config_option *the_truth_config_user_id2 = NULL;
 struct t_config_option *the_truth_config_user_pass2 = NULL;
 
+// TODO change user to an array, including username, password & postfix
 
-
-// !TODO get user changes
+// !TODO get user changes via callback
 int the_truth_config_user_write_callback (const void *pointer, void *data, struct t_config_file *config_file,
 	const char *section_name) {
 	(void) pointer;
@@ -113,9 +113,7 @@ void the_truth_initialize_user() {
 	const char *user2 = weechat_config_string(the_truth_config_user_id2);
 	const char *pass2 = weechat_config_string(the_truth_config_user_pass2);
 
-	if(!strcmp(user2, "") || !strcmp(pass2, "")){
-		return;
+	if(strcmp(user2, "") && strcmp(pass2, "")){
+		weechat_java_initialize_user(user2, pass2);
 	}
-
-	weechat_java_initialize_user(user2, pass2);
 }

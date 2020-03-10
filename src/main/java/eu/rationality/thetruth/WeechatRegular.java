@@ -130,7 +130,7 @@ class WeechatRegular implements WeechatAPI {
 				LOGGER.warning("Invalid JID specified from configuration");
 				return Weechat.WEECHAT_RC_ERROR;
 			}
-			long id = server.mappingCount() + 1; // TODO get prefix from user
+			long id = server.mappingCount() + 1; // !TODO get prefix from user
 			Server s = new Server(domain, user, pw, null, Long.toString(id));
 
 			server.put(jid, s);
@@ -187,13 +187,12 @@ class WeechatRegular implements WeechatAPI {
 	}
 
 	public int command_callback(long bufferId, String cmd, String[] args) {
-		Buffer b = BufferManager.getInstance().byId(bufferId
-		);
+		Buffer b = BufferManager.getInstance().byId(bufferId);
 		if (b == null) {
 			// For hooked commands: legit behaviour: hooked command invoked on other (e.g. irc) buffer
 			return Weechat.WEECHAT_RC_OK;
 		}
-		return b.receiveCommand(cmd, args);
+		return b.receiveCommand(cmd, args, bufferId);
 	}
 	
 	// Longs are native ids

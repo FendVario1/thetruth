@@ -76,7 +76,7 @@ class WeechatTest implements WeechatAPI {
     }
     // Callback for input received
     public int buffer_input_callback(long bufferid, String data) {
-        Buffer b = BufferManager.getinstance().byid(bufferid);
+        Buffer b = BufferManager.getInstance().byId(bufferid);
         if (b == null) {
             printerr(0, "Input callback received for buffer " + Long.toHexString(bufferid) +
                     " which is not managed by the plugin");
@@ -86,7 +86,7 @@ class WeechatTest implements WeechatAPI {
     }
     // Callback for buffer close events
     public int buffer_close_callback(long bufferid) {
-        BufferManager.getinstance().deregister(bufferid);
+        BufferManager.getInstance().deregister(bufferid);
         return Weechat.WEECHAT_RC_OK;
     }
 
@@ -200,12 +200,12 @@ class WeechatTest implements WeechatAPI {
     }
 
     public int command_callback(long bufferid, String cmd, String[] args) {
-        Buffer b = BufferManager.getinstance().byid(bufferid);
+        Buffer b = BufferManager.getInstance().byId(bufferid);
         if (b == null) {
             // For hooked commands: legit behaviour: hooked command invoked on other (e.g. irc) buffer
             return Weechat.WEECHAT_RC_OK;
         }
-        return b.receiveCommand(cmd, args);
+        return b.receiveCommand(cmd, args, bufferid);
     }
 
     // Longs are native ids

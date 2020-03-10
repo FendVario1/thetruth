@@ -1,16 +1,22 @@
 package eu.rationality.thetruth;
 
 
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-
+import eu.rationality.thetruth.Weechat.WeechatCallException;
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.roster.Roster;
+import org.jivesoftware.smackx.bookmarks.BookmarkManager;
 import org.jxmpp.jid.BareJid;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
+import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
 
-import eu.rationality.thetruth.Weechat.WeechatCallException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+
+import static java.lang.Boolean.parseBoolean;
 
 public class ServerBuffer extends Buffer {
 	private Server server;
@@ -61,11 +67,11 @@ public class ServerBuffer extends Buffer {
 	}
 	
 	@Override
-	public int receiveCommand(String cmd, String[] args) {
+	public int receiveCommand(String cmd, String[] args, Long bufferId) {
 		switch(cmd) {
 			case "query":
 				if (args.length != 2) {
-					printErr("Query expects one parameter: /query <jid>");
+					Weechat.getAPIInstance().printerr(bufferId, "Query expects one parameter: /query <jid>");
 					return Weechat.WEECHAT_RC_ERROR;
 				}
 				try {
@@ -75,14 +81,14 @@ public class ServerBuffer extends Buffer {
 					}
 					server.getChat(jid.asEntityBareJidOrThrow());
 				} catch (IllegalStateException | XmppStringprepException e) {
-					Weechat.getAPIInstance().printerr(nativeId,
+					Weechat.getAPIInstance().printerr(bufferId,
 							args[1] + " is neither a valid jid nor a known nickname");
 					return Weechat.WEECHAT_RC_ERROR;
 				}
 				break;
 			case "join":
 				if (args.length < 3 || args.length > 4) {
-					Weechat.getAPIInstance().printerr(nativeId,
+					Weechat.getAPIInstance().printerr(bufferId,
 							"Join expects three parameters: /join <jid> <nickname> [password]");
 					return Weechat.WEECHAT_RC_ERROR;
 				}
@@ -94,13 +100,13 @@ public class ServerBuffer extends Buffer {
 					EntityBareJid jid = JidCreate.entityBareFrom(args[1]);
 					server.getMuc(jid, args[2], pass);
 				} catch (XmppStringprepException e) {
-					Weechat.getAPIInstance().printerr(nativeId, args[1] + " does not constitute a valid jid");
+					Weechat.getAPIInstance().printerr(bufferId, args[1] + " does not constitute a valid jid");
 					return Weechat.WEECHAT_RC_ERROR;
 				}
 				break;
 			case "add":
 				if(args.length < 3) {
-					Weechat.getAPIInstance().printerr(nativeId,
+					Weechat.getAPIInstance().printerr(bufferId,
 							"Add expects at least two parameters: /add <jid> <nickname> [group1] [group2] [...]");
 					return Weechat.WEECHAT_RC_ERROR;
 				}
@@ -109,18 +115,41 @@ public class ServerBuffer extends Buffer {
 					System.arraycopy(args, 3, groups, 0, args.length - 3);
 					return nicklist.addUser(JidCreate.bareFrom(args[1]), args[2], groups);
 				} catch (XmppStringprepException e) {
-					Weechat.getAPIInstance().printerr(nativeId, args[1] + " does not constitute a valid jid");
+					Weechat.getAPIInstance().printerr(bufferId, args[1] + " does not constitute a valid jid");
 					return Weechat.WEECHAT_RC_ERROR;
 				}
-			case "remove":
+			case "remove": // !TODO roster edit
 				if(args.length != 2) {
-					Weechat.getAPIInstance().printerr(nativeId, "Remove expects one parameter: /remove <nickname>");
+					Weechat.getAPIInstance().printerr(bufferId, "Remove expects one parameter: /remove <nickname>");
 					return Weechat.WEECHAT_RC_ERROR;
 				}
 				return nicklist.removeUser(args[1]);
+			case "bookmarkAdd": // !TODO bookmarkRemove, bookmarkEdit
+				if(args.length < 5 || args.length > 6) {
+					Weechat.getAPIInstance().printerr(bufferId, "Bookmark expects four or five parameters:" +
+							" /bookmark <conferenceName> <jid> <autojoin> <nickname> [password]");
+					return Weechat.WEECHAT_RC_ERROR;
+				}
+				String password = "";
+				if (args.length == 6) {
+					password = args[5];
+				}
+				try {
+					String jidString = args[2];
+					BookmarkManager bm = BookmarkManager.getBookmarkManager(server.getCon());
+					EntityBareJid jid = JidCreate.entityBareFrom(jidString);
+					Resourcepart nick = Resourcepart.from(args[4]);
+					bm.addBookmarkedConference(args[0], jid, parseBoolean(args[3]), nick, password);
+					server.getMuc(jid, args[4], password);
+				} catch (SmackException.NoResponseException | SmackException.NotConnectedException |
+						XmppStringprepException | XMPPException.XMPPErrorException | InterruptedException e) {
+					LOGGER.log(Level.WARNING, "could not create bookmark", e);
+					return Weechat.WEECHAT_RC_ERROR;
+				}
+				return Weechat.WEECHAT_RC_OK;
 			default:
 		}
-		return super.receiveCommand(cmd, args);
+		return super.receiveCommand(cmd, args, bufferId);
 	}
 
 	@Override

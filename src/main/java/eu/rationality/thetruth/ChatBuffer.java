@@ -5,17 +5,21 @@ import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.chat2.Chat;
 import org.jivesoftware.smack.chat2.ChatManager;
+import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.delay.packet.DelayInformation;
 import org.jivesoftware.smackx.forward.packet.Forwarded;
 import org.jivesoftware.smackx.mam.MamManager;
+import org.jivesoftware.smackx.mam.element.MamPrefsIQ;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.stringprep.XmppStringprepException;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -98,18 +102,19 @@ public class ChatBuffer extends Buffer {
 	}
 
 	@Override
-	public int receiveCommand(String cmd, String[] args) {
+	public int receiveCommand(String cmd, String[] args, Long bufferId) {
 		switch(cmd) {
 			case "close":
 				BufferManager bm = BufferManager.getInstance();
-				bm.deregister(nativeId);
+				bm.deregister(bufferId);
 				break;
 			case "query":
 			case "join":
-				server.getServerBuffer().receiveCommand(cmd, args);
+			case "bookmarkAdd":
+				server.getServerBuffer().receiveCommand(cmd, args, bufferId);
 				break;
 		}
-		return super.receiveCommand(cmd, args);
+		return super.receiveCommand(cmd, args, bufferId);
 	}
 
 	@Override

@@ -178,10 +178,9 @@ public class Server {
 					else { // is User / MUC chat??
 						EntityBareJid fromJid = from.asEntityBareJid();
 						boolean isChatOpened = isChatOpen(fromJid);
-						ChatBuffer chatBuffer = getChat(fromJid);
+						ChatBuffer chatbuffer = getChat(fromJid);
 						if(isChatOpened)
-							chatBuffer.printMsgDateTags(
-									System.currentTimeMillis() / 1000L, from.asEntityBareJidString(),
+							chatbuffer.printMsgDateTags(System.currentTimeMillis() / 1000L, from.asEntityBareJidString(),
 									message.getBody(), "notify_private,log1");
 					}
 					return Weechat.WEECHAT_RC_OK;
@@ -217,8 +216,7 @@ public class Server {
 		});
 		// Roster setup
 		try {
-			RosterListener rl = (RosterListener) WeechatDelayedExectorInvocationHandler.
-					createProxy(serverBuffer.getNicklist(), new Class[] {RosterListener.class});
+			RosterListener rl = (RosterListener) WeechatDelayedExectorInvocationHandler.createProxy(serverBuffer.getNicklist(), new Class[] {RosterListener.class});
 			// Invokes Nicklist.rosterEntries() once for the initial setup of nicklist synchronously
 			// and invoke all subsequent roster updates asynchronously but guarded by the proxy above
 			roster.getEntriesAndAddListener(rl, serverBuffer.getNicklist());
@@ -251,7 +249,7 @@ public class Server {
 				}
 			});
 		}
-
+		
 		Presence presence = new Presence(Presence.Type.available);
 		presence.setStatus("Started up and running");
 		// Send the stanza (assume we have an XMPPConnection instance called "con").
@@ -260,6 +258,8 @@ public class Server {
 		BookmarkManager bm = BookmarkManager.getBookmarkManager(con);
 		List<BookmarkedConference> bookmarks = bm.getBookmarkedConferences();
 		for (BookmarkedConference b : bookmarks ) {
+			if (!b.isAutoJoin())
+				break;
 			EntityBareJid a = b.getJid();
 			Resourcepart e = b.getNickname();
 			String c = "";
@@ -281,11 +281,11 @@ public class Server {
 	}
 
 	public ChatBuffer getChat(EntityBareJid jid){
-		ChatBuffer chatBuffer = this.chatBuffer.get(jid);
-		if(chatBuffer == null) {
-			chatBuffer = openChat(jid);
+		ChatBuffer chatbuffer = chatBuffer.get(jid);
+		if(chatbuffer == null) {
+			chatbuffer = openChat(jid);
 		}
-		return chatBuffer;
+		return chatbuffer;
 	}
 
 	private ChatBuffer openChat(EntityBareJid jid) {
@@ -308,8 +308,8 @@ public class Server {
 	}
 
 	private boolean isChatOpen(EntityBareJid jid) {
-		ChatBuffer chatBuffer = this.chatBuffer.get(jid);
-		return chatBuffer != null;
+		ChatBuffer chatbuffer = chatBuffer.get(jid);
+		return chatbuffer != null;
 	}
 
 	public void getMuc(EntityBareJid jid, String nickname, String password) {
@@ -322,13 +322,12 @@ public class Server {
 
 	private void openMuc(EntityBareJid jid, String nickname, String password) {
 		MucBuffer b;
-		String serverName;
+		String servername;
 		MultiUserChatManager cm = MultiUserChatManager.getInstanceFor(con);
 		try {
 			// TODO if(password == null) {
 			RoomInfo roomInfo = cm.getRoomInfo(jid);
-			// get roomInfo works only on password unprotected Chats;
-			// !TODO get info for password protected rooms & then update buffername
+			// get roomInfo works only on password unprotected Chats; !TODO get info for password protected rooms & then update buffername
 			b = new MucBuffer(jid.asEntityBareJidString(), roomInfo.getName(), nickname, password, this);
 		} catch (SmackException.NoResponseException | XMPPException.XMPPErrorException | NotConnectedException |
 				InterruptedException | Weechat.WeechatCallException | XmppStringprepException e) {

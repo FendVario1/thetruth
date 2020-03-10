@@ -62,6 +62,8 @@ THE_TRUTH_COMMAND_CALLBACK(change_user2_cb) {
 	return WEECHAT_RC_OK;
 }
 
+// !TODO add /commands command, printing available comments
+
 void the_truth_command_init() {
 	weechat_hook_command("changeuser1",
 		N_("add new user credentials for jabber"),
@@ -99,4 +101,13 @@ void the_truth_command_init() {
 		N_("<Nickname>"),
 		N_("Nickname: nickname of roster entry"),
 		NULL, &xmpp_command_cb, "remove", NULL);
+	weechat_hook_command("bookmarkAdd",
+		N_("add a new bookmark"),
+		N_("<conferenceName ><Jid> <Autojoin> <Nickname> [Password]"),
+		N_("conferenceName: Name of the conference"
+			"Jid: Jid of conference"
+			"Autojoin: Autojoin setting for conference"
+			"Nickname: Nickname for conference"
+			"Password: Password for conference"),
+		NULL, &xmpp_command_cb, "bookmarkAdd", NULL);
 }

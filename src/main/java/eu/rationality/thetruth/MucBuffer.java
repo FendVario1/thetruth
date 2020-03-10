@@ -7,6 +7,8 @@ import org.jivesoftware.smack.filter.MessageWithBodiesFilter;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.disco.ServiceDiscoveryManager;
+import org.jivesoftware.smackx.mam.MamManager;
+import org.jivesoftware.smackx.muc.MucEnterConfiguration;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatException;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
@@ -15,6 +17,7 @@ import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
 
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -117,18 +120,19 @@ public class MucBuffer extends Buffer  {
     }
 
     @Override
-    public int receiveCommand(String cmd, String[] args) {
+    public int receiveCommand(String cmd, String[] args, Long bufferId) {
         switch(cmd) {
             case "close":
                 BufferManager bm = BufferManager.getInstance();
-                bm.deregister(nativeId);
+                bm.deregister(bufferId);
                 break;
             case "query":
             case "join":
-                localServer.getServerBuffer().receiveCommand(cmd, args);
+            case "bookmarkAdd":
+                localServer.getServerBuffer().receiveCommand(cmd, args, bufferId);
                 break;
         }
-        return super.receiveCommand(cmd, args);
+        return super.receiveCommand(cmd, args, bufferId);
     }
 
     @Override
