@@ -43,18 +43,24 @@ public class Server {
 	private String user;
 	private String password;
 	private Integer port;
+	private  long id;
 	private ServerBuffer serverbuffer;
 	private ConcurrentHashMap<EntityBareJid, ChatBuffer> chatBuffer = new ConcurrentHashMap<>();
 	private ConcurrentHashMap<EntityBareJid, MucBuffer> mucBuffer = new ConcurrentHashMap<>();
 
 	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
-	public Server(String domain, String user, String password, Integer port) {
+	public Server(String domain, String user, String password, Integer port, long id) {
 		super();
 		this.domain = domain;
 		this.user = user;
 		this.password = password;
 		this.port = port;
+		this.id = id;
+	}
+
+	public long getId() {
+		return id;
 	}
 
 	public XMPPTCPConnection getCon() {
@@ -87,6 +93,10 @@ public class Server {
 
 	public ServerBuffer getServerbuffer() {
 		return serverbuffer;
+	}
+
+	public ConcurrentHashMap<EntityBareJid, ChatBuffer> getChatBuffer() {
+		return chatBuffer;
 	}
 
 	public void removeChatBuffer(EntityBareJid id) {

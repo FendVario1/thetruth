@@ -18,7 +18,7 @@ public class Nick {
 	String prefixcolor;
 
 	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
-	
+
 	private final String AVAILABLE = "o";// "🗨";
 	private final String DND       = "n";// "⛔";
 	private final String OFFLINE   = "x";// "❌";
@@ -45,7 +45,7 @@ public class Nick {
 	public void deregisterBuffer(Buffer buffer) {
 		buffers.removeIf((b) -> b.getBuf().nativeid == buffer.nativeid);
 	}
-	
+
 	public void updateInfo(BareJid jid, String name) {
 		this.jid  = jid;
 		this.name = name;
@@ -71,7 +71,6 @@ public class Nick {
 			prefixcolor = "red";
 			buffer.print_prefix("quit", name + " (" + jid + ") disconnected");
 		}
-		LOGGER.log(Level.INFO, "in updatePresence - new prefix: " + prefix + " user: " + jid);
 		updateBuffers();
 	}
 

@@ -10,8 +10,10 @@
 
 struct t_config_file *the_truth_config_file = NULL;
 struct t_config_section *the_truth_config_user_section = NULL;
-struct t_config_option *the_truth_config_user_id = NULL;
-struct t_config_option *the_truth_config_user_pass = NULL;
+struct t_config_option *the_truth_config_user_id1 = NULL;
+struct t_config_option *the_truth_config_user_pass1 = NULL;
+struct t_config_option *the_truth_config_user_id2 = NULL;
+struct t_config_option *the_truth_config_user_pass2 = NULL;
 
 
 
@@ -41,12 +43,20 @@ void the_truth_config_init(){
 		, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 	// Setting up config options
-	the_truth_config_user_pass = weechat_config_new_option(the_truth_config_file, the_truth_config_user_section, 
-		"Jabber_Pass", "string", N_("Jabber Password"), NULL, 0, 0, "", NULL, 0, 
+	the_truth_config_user_pass1 = weechat_config_new_option(the_truth_config_file, the_truth_config_user_section,
+		"Jabber_Pass1", "string", N_("Jabber Password 1"), NULL, 0, 0, "", NULL, 0,
 		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
-	the_truth_config_user_id = weechat_config_new_option(the_truth_config_file, the_truth_config_user_section, 
-		"Jabber_ID", "string", N_("Jabber ID"), NULL, 0, 0, "", NULL, 0, 
+	the_truth_config_user_id1 = weechat_config_new_option(the_truth_config_file, the_truth_config_user_section,
+		"Jabber_ID1", "string", N_("Jabber ID 1"), NULL, 0, 0, "", NULL, 0,
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
+	the_truth_config_user_pass2 = weechat_config_new_option(the_truth_config_file, the_truth_config_user_section,
+		"Jabber_Pass2", "string", N_("Jabber Password 2"), NULL, 0, 0, "", NULL, 0,
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
+	the_truth_config_user_id2 = weechat_config_new_option(the_truth_config_file, the_truth_config_user_section,
+		"Jabber_ID2", "string", N_("Jabber ID 2"), NULL, 0, 0, "", NULL, 0,
 		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 
@@ -73,22 +83,39 @@ void the_truth_config_free(){
 	weechat_config_free(the_truth_config_file);
 }
 
-int the_truth_config_update_pass(const char *value){ // TODO config_write_line??
-	return weechat_config_option_set(the_truth_config_user_pass, value, 0);
+int the_truth_config_update_pass1(const char *value){ // TODO config_write_line??
+	return weechat_config_option_set(the_truth_config_user_pass1, value, 0);
 }
 
-int the_truth_config_update_jid(const char *value){
-	return weechat_config_option_set(the_truth_config_user_id, value, 0);
+int the_truth_config_update_jid1(const char *value){
+	return weechat_config_option_set(the_truth_config_user_id1, value, 0);
+}
+
+int the_truth_config_update_pass2(const char *value){ // TODO config_write_line??
+	return weechat_config_option_set(the_truth_config_user_pass2, value, 0);
+}
+
+int the_truth_config_update_jid2(const char *value){
+	return weechat_config_option_set(the_truth_config_user_id2, value, 0);
 }
 
 void the_truth_initialize_user() {
-	const char *user = weechat_config_string(the_truth_config_user_id);
-	const char *pass = weechat_config_string(the_truth_config_user_pass);
+	const char *user1 = weechat_config_string(the_truth_config_user_id1);
+	const char *pass1 = weechat_config_string(the_truth_config_user_pass1);
 
-	if(!strcmp(user, "") || !strcmp(pass, "")){
+	if(!strcmp(user1, "") || !strcmp(pass1, "")){
 		weechat_printf(NULL, "No user credentials have been found, please add a user with /changeuser.", "");
 		return;
 	}
 
-	weechat_java_initialize_user(user, pass);
+	weechat_java_initialize_user(user1, pass1);
+
+	const char *user2 = weechat_config_string(the_truth_config_user_id2);
+	const char *pass2 = weechat_config_string(the_truth_config_user_pass2);
+
+	if(!strcmp(user2, "") || !strcmp(pass2, "")){
+		return;
+	}
+
+	weechat_java_initialize_user(user2, pass2);
 }

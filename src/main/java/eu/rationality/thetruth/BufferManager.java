@@ -34,7 +34,7 @@ public class BufferManager {
 		Buffer removed = id2buffer.remove(nativeid);
 		if (removed == null) {
 			LOGGER.log(Level.WARNING, "Closing buffer " + Long.toHexString(nativeid)
-					+ " which is not registered with the Buffermanager");
+					+ " which is not registered with the BufferManager");
 		} else {
 			removed.closeCallback();
 		}

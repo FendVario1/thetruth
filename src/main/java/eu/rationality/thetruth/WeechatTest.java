@@ -143,7 +143,8 @@ class WeechatTest implements WeechatAPI {
                 LOGGER.warning("Invalid JID specified from configuration");
                 return Weechat.WEECHAT_RC_ERROR;
             }
-            Server s = new Server(domain, user, pw, null);
+            long id = server.mappingCount() + 1;
+            Server s = new Server(domain, user, pw, null, id);
 
             server.put(jid, s);
 

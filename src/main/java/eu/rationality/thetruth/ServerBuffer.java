@@ -18,6 +18,8 @@ import eu.rationality.thetruth.Weechat.WeechatCallException;
 public class ServerBuffer extends Buffer {
 	private Server server;
 	private Nicklist nicklist;
+
+	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 	
 	public ServerBuffer(Server server, Roster roster) throws WeechatCallException {
 		super(server.getJID());
