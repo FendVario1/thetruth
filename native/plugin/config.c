@@ -83,7 +83,7 @@ void the_truth_config_free(){
 	weechat_config_free(the_truth_config_file);
 }
 
-int the_truth_config_update_pass1(const char *value){ // TODO config_write_line??
+int the_truth_config_update_pass1(const char *value){
 	return weechat_config_option_set(the_truth_config_user_pass1, value, 0);
 }
 
@@ -91,7 +91,7 @@ int the_truth_config_update_jid1(const char *value){
 	return weechat_config_option_set(the_truth_config_user_id1, value, 0);
 }
 
-int the_truth_config_update_pass2(const char *value){ // TODO config_write_line??
+int the_truth_config_update_pass2(const char *value){
 	return weechat_config_option_set(the_truth_config_user_pass2, value, 0);
 }
 

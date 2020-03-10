@@ -18,8 +18,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-// !TODO show nicklist in Chatbuffers accociated to Servers
-
 public class Nicklist implements RosterEntries, RosterListener, PresenceListener {
 	private ServerBuffer buffer;
 	private Roster roster;

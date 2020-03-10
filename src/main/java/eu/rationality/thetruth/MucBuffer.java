@@ -58,6 +58,7 @@ public class MucBuffer extends Buffer  {
         // get user is already joined?
         Set<EntityBareJid> joinedMucs = cm.getJoinedRooms();
         if (!joinedMucs.contains(chatJid)) {
+            // TODO load MUC history
             try {
                 Resourcepart name = Resourcepart.fromOrNull(nickname);
                 if (password == null) {

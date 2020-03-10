@@ -20,8 +20,6 @@ public class Nick {
 	private final String DND       = "n";// "⛔";
 	private final String OFFLINE   = "x";// "❌";
 
-	//!TODO check logging
-
 	public Nick(ServerBuffer buffer, BareJid jid, String name, Presence presence) {
 		buffers = new CopyOnWriteArrayList<>();
 		this.buffer = buffer;

@@ -379,7 +379,7 @@ weechat_plugin_init (struct t_weechat_plugin *plugin,
 	// Setting up signaling infrastructure
 	create_hook_fd_signaling();
 
-	// Setting up weechat config // TODO: move to own file
+	// Setting up weechat config
 	the_truth_config_init();
 	the_truth_config_read();
 
