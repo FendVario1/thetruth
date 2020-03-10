@@ -6,12 +6,15 @@ import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smackx.bookmarks.BookmarkManager;
+import org.jivesoftware.smackx.bookmarks.BookmarkedConference;
 import org.jxmpp.jid.BareJid;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
 
+import java.awt.print.Book;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -124,7 +127,8 @@ public class ServerBuffer extends Buffer {
 					return Weechat.WEECHAT_RC_ERROR;
 				}
 				return nicklist.removeUser(args[1]);
-			case "bookmarkAdd": // !TODO bookmarkRemove, bookmarkEdit
+			case "bookmarkAdd":
+			case "bookmarkEdit":
 				if(args.length < 5 || args.length > 6) {
 					Weechat.getAPIInstance().printerr(bufferId, "Bookmark expects four or five parameters:" +
 							" /bookmark <conferenceName> <jid> <autojoin> <nickname> [password]");
@@ -135,9 +139,8 @@ public class ServerBuffer extends Buffer {
 					password = args[5];
 				}
 				try {
-					String jidString = args[2];
 					BookmarkManager bm = BookmarkManager.getBookmarkManager(server.getCon());
-					EntityBareJid jid = JidCreate.entityBareFrom(jidString);
+					EntityBareJid jid = JidCreate.entityBareFrom(args[2]);
 					Resourcepart nick = Resourcepart.from(args[4]);
 					bm.addBookmarkedConference(args[0], jid, parseBoolean(args[3]), nick, password);
 					server.getMuc(jid, args[4], password);
@@ -146,7 +149,43 @@ public class ServerBuffer extends Buffer {
 					LOGGER.log(Level.WARNING, "could not create bookmark", e);
 					return Weechat.WEECHAT_RC_ERROR;
 				}
+				Weechat.getAPIInstance().print(bufferId, "bookmark saved.");
 				return Weechat.WEECHAT_RC_OK;
+			case "bookmarkRemove":
+				if (args.length != 2) {
+					Weechat.getAPIInstance().printerr(bufferId, "bookmarkRemove expects one parameter: /bookmarkRemove <jid>");
+					return Weechat.WEECHAT_RC_ERROR;
+				}
+				try{
+					BookmarkManager bm = BookmarkManager.getBookmarkManager(server.getCon());
+					EntityBareJid jid = JidCreate.entityBareFrom(args[1]);
+					bm.removeBookmarkedConference(jid);
+				} catch (XmppStringprepException | SmackException.NoResponseException | InterruptedException |
+						XMPPException.XMPPErrorException | SmackException.NotConnectedException e) {
+					LOGGER.log(Level.WARNING, "could not remove bookmark", e);
+					return Weechat.WEECHAT_RC_ERROR;
+				}
+				Weechat.getAPIInstance().print(bufferId, "bookmark removed");
+				return Weechat.WEECHAT_RC_OK;
+			case "bookmarks":
+				if(args.length > 1)
+					Weechat.getAPIInstance().printerr(bufferId,
+							"bookmarks expects only one parameter, ignoring additional ones...");
+				BookmarkManager bm = BookmarkManager.getBookmarkManager(server.getCon());
+				try {
+					List<BookmarkedConference> conferences = bm.getBookmarkedConferences();
+					WeechatAPI api = Weechat.getAPIInstance();
+					for (BookmarkedConference c : conferences) {
+						api.print(bufferId, c.getJid().toString() + ": Nickname = " + c.getNickname() +
+								" isAutojoin = " + c.isAutoJoin());
+					}
+				} catch (SmackException.NoResponseException | XMPPException.XMPPErrorException |
+						SmackException.NotConnectedException | InterruptedException e) {
+					LOGGER.log(Level.WARNING, "could not show bookmarks", e);
+					return Weechat.WEECHAT_RC_ERROR;
+				}
+				return Weechat.WEECHAT_RC_OK;
+
 			default:
 		}
 		return super.receiveCommand(cmd, args, bufferId);

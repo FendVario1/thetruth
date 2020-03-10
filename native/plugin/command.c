@@ -110,4 +110,23 @@ void the_truth_command_init() {
 			"Nickname: Nickname for conference"
 			"Password: Password for conference"),
 		NULL, &xmpp_command_cb, "bookmarkAdd", NULL);
+	weechat_hook_command("bookmarkEdit",
+		N_("edit a bookmark"),
+		N_("<conferenceName ><Jid> <Autojoin> <Nickname> [Password]"),
+		N_("conferenceName: Name of the conference"
+			"Jid: Jid of bookmarked conference"
+			"Autojoin: Autojoin setting for conference"
+			"Nickname: Nickname for conference"
+			"Password: Password for conference"),
+		NULL, &xmpp_command_cb, "bookmarkEdit", NULL);
+	weechat_hook_command("bookmarkRemove",
+		N_("remove a conference from your bookmarks"),
+		N_("<jid>"),
+		N_("jid: jid of bookmarked conference"),
+		NULL, &xmpp_command_cb, "bookmarkRemove", NULL);
+	weechat_hook_command("bookmarks",
+		N_("shows all currently saved bookmarks"),
+		N_(""),
+		N_(""),		
+		NULL, &xmpp_command_cb, "bookmarks", NULL);
 }
