@@ -78,7 +78,7 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 			}
 			RosterEntry e = roster.getEntry(bare);
 			Presence    p = getPresence(bare);
-			nick.updateInfo(bare, e.getName()); // TODO e.getName() returns null
+			nick.updateInfo(bare, e.getName()); // TODO e.getName() returns null?
 			nick.updatePresence(p);
 		}
 		
@@ -169,6 +169,14 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 	protected BareJid getJidFromString (String name) {
 		RosterEntry entr = getRosterEntryFromString(name);
 		return entr == null ? null : entr.getJid();
+	}
+
+	public void registerBuffer(Buffer buffer) {
+		jid2nick.forEach((jid, nick) -> nick.registerBuffer(buffer));
+	}
+
+	public void deregisterBuffer(Buffer buffer) {
+		jid2nick.forEach((jid, nick) -> nick.deregisterBuffer(buffer));
 	}
 
 }
