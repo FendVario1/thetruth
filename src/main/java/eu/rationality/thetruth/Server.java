@@ -274,6 +274,11 @@ public class Server {
 	}
 
 	private ChatBuffer openChat(EntityBareJid jid) {
+		if(jid.getDomain().toString().equals(domain) && jid.getLocalpart().toString().equals(user)){
+			Weechat.getAPIInstance().print(getServerbuffer().nativeid, "open a chat with your own Jid is not allowed");
+			return null;
+		}
+
 		ChatBuffer b;
 		try {
 			b = new ChatBuffer(getJID(), jid.asEntityBareJidString(), this);

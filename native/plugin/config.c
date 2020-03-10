@@ -86,7 +86,7 @@ void the_truth_initialize_user() {
 	const char *pass = weechat_config_string(the_truth_config_user_pass);
 
 	if(!strcmp(user, "") || !strcmp(pass, "")){
-		weechat_printf(NULL, "No user credentials have been found, please add a user with /tadduser.", "");
+		weechat_printf(NULL, "No user credentials have been found, please add a user with /changeuser.", "");
 		return;
 	}
 
