@@ -31,7 +31,7 @@ public class ChatBuffer extends Buffer {
 	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
 	public ChatBuffer(String jidStringFrom, String jidStringTo, Server server) throws WeechatCallException, XmppStringprepException {
-		super(jidStringTo); // + " (" + jidStringFrom + ")"
+		super(jidStringTo + " (" + server.getId() + ")"); // TODO find a more intuitive way to have unique buffer names
 
 		jidTo = JidCreate.from(jidStringTo).asEntityBareJidIfPossible();
 		Weechat.getAPIInstance().buffer_set(nativeid, "title", "Chat: " + jidStringTo + " (From: " + jidStringFrom + ")");

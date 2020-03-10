@@ -71,7 +71,6 @@ public class Nick {
 			prefixcolor = "red";
 			buffer.print_prefix("quit", name + " (" + jid + ") disconnected");
 		}
-		LOGGER.log(Level.INFO, "in updatePresence - new prefix: " + prefix + " user: " + jid);
 		updateBuffers();
 	}
 

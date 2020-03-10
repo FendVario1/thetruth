@@ -63,6 +63,7 @@ public class MucBuffer extends Buffer  {
                 }
             } catch (MultiUserChatException.NotAMucServiceException e) {
                 Weechat.getAPIInstance().print(localServer.getServerbuffer().nativeid, jidStringTo + " is not a valid MUC!");
+                return;
             } catch (XMPPException.XMPPErrorException | InterruptedException | SmackException.NoResponseException |
                     SmackException.NotConnectedException e) {
                 LOGGER.log(Level.WARNING, "could not join MUC " + jidStringTo, e);
