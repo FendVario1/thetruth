@@ -18,17 +18,6 @@ ext {
 	smackVersion = "4.3.4"
 }
 
-sourceSets {
-	testFlavor {
-		java.srcDir 'src/testFlavor/java'
-	}
-}
-
-task testFlavor(type: Jar) {
-	classifier = 'testFlavorJar'
-}
-
-
 repositories {
 	mavenCentral()
 	maven {
