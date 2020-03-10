@@ -37,6 +37,8 @@ public class ChatBuffer extends Buffer {
 		Weechat.getAPIInstance().buffer_set(nativeid, "title", "Chat: " + jidStringTo + " (From: " + jidStringFrom + ")");
 		Weechat.getAPIInstance().buffer_set(nativeid, "nicklist", "1");
 		Weechat.getAPIInstance().buffer_set(nativeid, "display", "auto");
+		server.getServerbuffer().getNicklist().registerBuffer(this);
+
 		this.jidStringFrom = jidStringFrom;
 		this.jidStringTo = jidStringTo;
 		fromNickname = jidStringFrom.split("@", 2)[0];
@@ -113,6 +115,7 @@ public class ChatBuffer extends Buffer {
 	@Override
 	public void closeCallback() {
 		super.closeCallback();
+		server.getServerbuffer().getNicklist().deregisterBuffer(this);
 		server.removeChatBuffer(jidTo); // TODO close in smack??
 		Weechat.getAPIInstance().buffer_close_callback(nativeid);
 	}
