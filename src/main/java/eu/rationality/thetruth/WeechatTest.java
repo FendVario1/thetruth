@@ -144,7 +144,7 @@ class WeechatTest implements WeechatAPI {
                 return Weechat.WEECHAT_RC_ERROR;
             }
             long id = server.mappingCount() + 1;
-            Server s = new Server(domain, user, pw, null, id);
+            Server s = new Server(domain, user, pw, null, Long.toString(id));
 
             server.put(jid, s);
 

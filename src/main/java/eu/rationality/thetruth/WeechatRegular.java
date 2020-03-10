@@ -130,8 +130,8 @@ class WeechatRegular implements WeechatAPI {
 				LOGGER.warning("Invalid JID specified from configuration");
 				return Weechat.WEECHAT_RC_ERROR;
 			}
-			long id = server.mappingCount() + 1;
-			Server s = new Server(domain, user, pw, null, id);
+			long id = server.mappingCount() + 1; // TODO get prefix from user
+			Server s = new Server(domain, user, pw, null, Long.toString(id));
 
 			server.put(jid, s);
 

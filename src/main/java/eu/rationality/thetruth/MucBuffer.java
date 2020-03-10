@@ -90,7 +90,7 @@ public class MucBuffer extends Buffer  {
             }
         };
         chat.addMessageListener(messageListener);
-        Weechat.getAPIInstance().buffer_set(nativeid, "title", "Chatroom: " + chat.getRoom() + " (" + localServer.getId()+")"); // TODO get other roomname?
+        Weechat.getAPIInstance().buffer_set(nativeid, "title", "Chatroom: " + chat.getRoom() + " " + localServer.getPostfix()); // TODO get other roomname?
         Weechat.getAPIInstance().buffer_set(nativeid, "nicklist", "1");
         Weechat.getAPIInstance().buffer_set(nativeid, "display", "auto");
 

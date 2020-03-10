@@ -43,24 +43,24 @@ public class Server {
 	private String user;
 	private String password;
 	private Integer port;
-	private  long id;
+	private String postfix;
 	private ServerBuffer serverbuffer;
 	private ConcurrentHashMap<EntityBareJid, ChatBuffer> chatBuffer = new ConcurrentHashMap<>();
 	private ConcurrentHashMap<EntityBareJid, MucBuffer> mucBuffer = new ConcurrentHashMap<>();
 
 	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
-	public Server(String domain, String user, String password, Integer port, long id) {
+	public Server(String domain, String user, String password, Integer port, String postfix) {
 		super();
 		this.domain = domain;
 		this.user = user;
 		this.password = password;
 		this.port = port;
-		this.id = id;
+		this.postfix = postfix;
 	}
 
-	public long getId() {
-		return id;
+	public String getPostfix() {
+		return postfix;
 	}
 
 	public XMPPTCPConnection getCon() {
