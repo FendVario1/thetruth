@@ -50,7 +50,7 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 		
 	}
 
-
+	
 	@Override
 	public void entriesAdded(Collection<Jid> addresses) {
 		for (Jid j : addresses) {
