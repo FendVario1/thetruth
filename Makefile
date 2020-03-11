@@ -11,7 +11,7 @@ run: all weechat/plugins/$(JAR_FILE)
 	LD_LIBRARY_PATH="${JAVA_HOME}/lib/server" weechat -d ./weechat
 
 test: all weechat/plugins/$(JAR_FILE)
-	gradle test
+	gradle test -Dnet.bytebuddy.experimental=true
 
 native/plugin/java/eu_rationality_thetruth_Weechat.h: src/main/java/eu/rationality/thetruth/Weechat.java $(JAR)
 	 $(JAVA_HOME)/bin/javac $< -cp $(JAR) -h ./native/plugin/java
