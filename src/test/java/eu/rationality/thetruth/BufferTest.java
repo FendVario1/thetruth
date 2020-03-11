@@ -6,6 +6,12 @@ import static org.junit.Assert.*;
 
 public class BufferTest {
     @Test
+    public void tetsBuffer() throws Weechat.WeechatCallException {
+        Weechat.setAPIInstance(new WeechatTest());
+        Buffer buf = new DummyBuffer();
+        assertNotNull(buf);
+    }
+    @Test
     public void testGetNativeId() throws Weechat.WeechatCallException {
         Weechat.setAPIInstance(new WeechatTest());
         Buffer buf = new DummyBuffer();
@@ -29,7 +35,7 @@ public class BufferTest {
     public void testPrint_prefix() throws Weechat.WeechatCallException {
         Weechat.setAPIInstance(new WeechatTest());
         Buffer tBuf = new DummyBuffer();
-        tBuf.print_prefix("testPrefix", "testing");
+        tBuf.printPrefix("testPrefix", "testing");
     }
     @Test
     public void testPrintMsgDateTags() throws Weechat.WeechatCallException {
@@ -45,9 +51,9 @@ public class BufferTest {
     public void testReceiveCommand() throws Weechat.WeechatCallException {
         Weechat.setAPIInstance(new WeechatTest());
         Buffer buf = new DummyBuffer();
-        assertEquals(buf.receiveCommand("blub",null), Weechat.WEECHAT_RC_OK);
+        assertEquals(buf.receiveCommand("blub",null, 111L), Weechat.WEECHAT_RC_OK);
     }
-//todo
+
     @Test
     public void testHandleInput() throws Weechat.WeechatCallException {
         Weechat.setAPIInstance(new WeechatTest());
