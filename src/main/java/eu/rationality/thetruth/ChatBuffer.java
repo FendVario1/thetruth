@@ -111,6 +111,7 @@ public class ChatBuffer extends Buffer {
 			case "query":
 			case "join":
 			case "bookmarkAdd":
+			case "bookmarks":
 				server.getServerBuffer().receiveCommand(cmd, args, bufferId);
 				break;
 		}

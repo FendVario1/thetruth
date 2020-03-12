@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// !TODO UserStatusListener
+// TODO UserStatusListener?
 public class Occupants implements PresenceListener, ParticipantStatusListener {
     private MucBuffer buffer;
     private MultiUserChat chat;

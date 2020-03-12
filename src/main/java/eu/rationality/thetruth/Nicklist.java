@@ -4,24 +4,20 @@ import org.jivesoftware.smack.PresenceListener;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Presence;
-import org.jivesoftware.smack.roster.Roster;
-import org.jivesoftware.smack.roster.RosterEntries;
-import org.jivesoftware.smack.roster.RosterEntry;
-import org.jivesoftware.smack.roster.RosterListener;
+import org.jivesoftware.smack.roster.*;
 import org.jxmpp.jid.BareJid;
 import org.jxmpp.jid.Jid;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Nicklist implements RosterEntries, RosterListener, PresenceListener {
+public class Nicklist implements RosterEntries, RosterListener, PresenceListener, SubscribeListener {
 	private ServerBuffer buffer;
 	private Roster roster;
 	private Map<BareJid, Nick> jid2nick = new HashMap<>();
+	private Map<Integer, Jid> pendingSubscriptions = new HashMap<>();
+	private Integer idCounter = 0;
 
 	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 	
@@ -111,6 +107,18 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 		presenceChanged(presence);
 	}
 
+	@Override
+	public SubscribeAnswer processSubscribe(Jid from, Presence presence) {
+		if (presence.getType() == Presence.Type.subscribe) {
+			LOGGER.log(Level.INFO, "Intercepted sub request from: " + presence.getFrom().toString());
+			if (!pendingSubscriptions.containsValue(presence.getFrom())) {
+				pendingSubscriptions.put(idCounter++, presence.getFrom());
+			}
+			return null;
+		}// TODO unsubscribe or other types
+		return SubscribeAnswer.Deny;
+	}
+
 	public int addUser (BareJid address, String nickname, String[] groups) {
 		Weechat.getAPIInstance().print(0, address.toString() + " " + nickname);
 		try {
@@ -139,10 +147,6 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 		return Weechat.WEECHAT_RC_OK;
 	}
 
-	/*public int editUser (BareJid address, String nickname, String[] groups) {
-		// TODO implement
-	}*/
-
 	private RosterEntry getRosterEntryFromString (String nickname) {
 		Set<RosterEntry> entries = roster.getEntries();
 		RosterEntry entry = null;
@@ -163,8 +167,8 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 	}
 
 	protected BareJid getJidFromString (String name) {
-		RosterEntry entr = getRosterEntryFromString(name);
-		return entr == null ? null : entr.getJid();
+		RosterEntry entry = getRosterEntryFromString(name);
+		return entry == null ? null : entry.getJid();
 	}
 
 	public void registerBuffer(Buffer buffer) {
@@ -175,4 +179,24 @@ public class Nicklist implements RosterEntries, RosterListener, PresenceListener
 		jid2nick.forEach((jid, nick) -> nick.deregisterBuffer(buffer));
 	}
 
+	public void showPendingSubscriptions (long bufferid) {
+		WeechatAPI api = Weechat.getAPIInstance();
+		api.print(bufferid, "You currently have the following roster requests:\n" +
+				"<requestId>: <Jid>");
+		api.print(bufferid, "----------------------------------");
+		pendingSubscriptions.forEach((id, jid) -> {
+			api.print(bufferid,  id + ": " + jid.toString());
+		});
+		api.print(bufferid, "----------------------------------");
+		api.print(bufferid, "To add a request to your roster simply use /rosterAdd <requestId> <nickname> " +
+				"[group1] [group2] [groupX]");
+	}
+
+	public Jid getPendingJid (Integer id) {
+		return pendingSubscriptions.get(id);
+	}
+
+	public void removePendingJid (Integer id) {
+		pendingSubscriptions.remove(id);
+	}
 }

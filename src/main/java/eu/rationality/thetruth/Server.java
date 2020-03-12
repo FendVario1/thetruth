@@ -21,6 +21,7 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterListener;
+import org.jivesoftware.smack.roster.SubscribeListener;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.bookmarks.BookmarkManager;
@@ -127,6 +128,9 @@ public class Server {
 		if (this.serverBuffer == null) {
 			this.serverBuffer = new ServerBuffer(this, roster);
 		}
+		// TODO make this configurable via weechat config?
+		if(roster.getSubscriptionMode() != Roster.SubscriptionMode.manual)
+			roster.setSubscriptionMode(Roster.SubscriptionMode.manual);
 		Weechat.getAPIInstance().print(0, "Created serverbuffer");
 		serverBuffer.print("Connecting to server");
 		con.addConnectionListener(new ConnectionListener() {
@@ -224,6 +228,7 @@ public class Server {
 			Weechat.getAPIInstance().print(0, "Failed to add RoosterListener: " + e.toString());
 			Weechat.getAPIInstance().print_backtrace(e);
 		}
+		roster.addSubscribeListener(serverBuffer.getNicklist());
 		// Actually login
 		con.connect().login();
 		
@@ -327,7 +332,7 @@ public class Server {
 		try {
 			// TODO if(password == null) {
 			RoomInfo roomInfo = cm.getRoomInfo(jid);
-			// get roomInfo works only on password unprotected Chats; !TODO get info for password protected rooms & then update buffername
+			// get roomInfo works only on password unprotected Chats; TODO get info for password protected rooms & then update buffername
 			b = new MucBuffer(jid.asEntityBareJidString(), roomInfo.getName(), nickname, password, this);
 		} catch (SmackException.NoResponseException | XMPPException.XMPPErrorException | NotConnectedException |
 				InterruptedException | Weechat.WeechatCallException | XmppStringprepException e) {
@@ -342,5 +347,20 @@ public class Server {
 		if (con.isConnected()) {
 			con.disconnect();
 		}
+	}
+
+	public int addBookmark(String name, EntityBareJid jid, boolean autojoin, String  nickname, String password, Long bufferId) {
+		try {
+			BookmarkManager bm = BookmarkManager.getBookmarkManager(getCon());
+			Resourcepart nick = Resourcepart.from(nickname);
+			bm.addBookmarkedConference(name, jid, autojoin, nick, password);
+			getMuc(jid, nickname, password);
+		} catch (SmackException.NoResponseException | SmackException.NotConnectedException |
+				XmppStringprepException | XMPPException.XMPPErrorException | InterruptedException e) {
+			LOGGER.log(Level.WARNING, "could not create bookmark", e);
+			return Weechat.WEECHAT_RC_ERROR;
+		}
+		Weechat.getAPIInstance().print(bufferId, "bookmark saved.");
+		return Weechat.WEECHAT_RC_OK;
 	}
 }

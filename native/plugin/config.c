@@ -17,7 +17,7 @@ struct t_config_option *the_truth_config_user_pass2 = NULL;
 
 // TODO change user to an array, including username, password & postfix
 
-// !TODO get user changes via callback
+// TODO get user changes via callback?
 int the_truth_config_user_write_callback (const void *pointer, void *data, struct t_config_file *config_file,
 	const char *section_name) {
 	(void) pointer;
@@ -34,11 +34,11 @@ int the_truth_config_user_write_callback (const void *pointer, void *data, struc
 void the_truth_config_init(){
 
 	// Setting up config file
-	the_truth_config_file = weechat_config_new(THE_TRUTH_CONFIG_NAME, NULL // TODO callback
+	the_truth_config_file = weechat_config_new(THE_TRUTH_CONFIG_NAME, NULL // TODO callback?
 		, NULL, NULL);
 
 	// Setting up config sections
-	// TODO setup callbacks (before write), to remove all users, before changes are applied
+	// TODO setup callbacks (before write), to remove all users, before changes are applied?
 	the_truth_config_user_section = weechat_config_new_section(the_truth_config_file, "user", 0, 0, NULL //TODO callback?
 		, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 

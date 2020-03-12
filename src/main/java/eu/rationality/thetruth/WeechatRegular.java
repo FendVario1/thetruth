@@ -19,6 +19,7 @@ import org.jxmpp.jid.util.JidUtil;
 class WeechatRegular implements WeechatAPI {
 
 	static ConcurrentHashMap<EntityBareJid, Server> server = new ConcurrentHashMap<>();
+	static int serverId = 0;
 	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
 
@@ -130,7 +131,7 @@ class WeechatRegular implements WeechatAPI {
 				LOGGER.warning("Invalid JID specified from configuration");
 				return Weechat.WEECHAT_RC_ERROR;
 			}
-			long id = server.mappingCount() + 1; // !TODO get prefix from user
+			long id = serverId++; // TODO get prefix from user (config)
 			Server s = new Server(domain, user, pw, null, Long.toString(id));
 
 			server.put(jid, s);

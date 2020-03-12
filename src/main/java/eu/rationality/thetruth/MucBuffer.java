@@ -7,8 +7,6 @@ import org.jivesoftware.smack.filter.MessageWithBodiesFilter;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.disco.ServiceDiscoveryManager;
-import org.jivesoftware.smackx.mam.MamManager;
-import org.jivesoftware.smackx.muc.MucEnterConfiguration;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatException;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
@@ -17,7 +15,6 @@ import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
 
-import java.util.LinkedList;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,12 +25,16 @@ public class MucBuffer extends Buffer  {
     private MultiUserChat chat;
     private MessageListener messageListener;
     private Occupants occupantsList;
+    private String serverName, nickname, password;
 
     private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
     public MucBuffer (String jidStringTo, String serverName, String nickname, String password,
                       Server localServer) throws Weechat.WeechatCallException, XmppStringprepException {
         super(serverName);
+        this.serverName = serverName;
+        this.nickname = nickname;
+        this.password = password;
         chatJid = JidCreate.from(jidStringTo).asEntityBareJidIfPossible();
         try {
             ServiceDiscoveryManager sm = ServiceDiscoveryManager.getInstanceFor(localServer.getCon());
@@ -126,12 +127,12 @@ public class MucBuffer extends Buffer  {
             case "close":
                 BufferManager bm = BufferManager.getInstance();
                 bm.deregister(bufferId);
-                break;
+                return Weechat.WEECHAT_RC_OK;
             case "query":
             case "join":
+                return localServer.getServerBuffer().receiveCommand(cmd, args, bufferId);
             case "bookmarkAdd":
-                localServer.getServerBuffer().receiveCommand(cmd, args, bufferId);
-                break;
+                return localServer.addBookmark(serverName, chatJid, true, nickname, password, nativeId);
         }
         return super.receiveCommand(cmd, args, bufferId);
     }
