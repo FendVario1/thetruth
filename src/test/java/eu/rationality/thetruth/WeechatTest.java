@@ -126,6 +126,8 @@ class WeechatTest implements WeechatAPI {
     public long nicklist_add_nick(long bufferid, String nick, String color, String prefix) {
         if (bufferid == 111 && nick.equals("test@example.de") && color.equals("") && prefix.equals(""))
             return 111;
+        if (bufferid == 0 && nick.equals("test@example.de") && color.equals("") && prefix.equals(""))
+            return 112;
         throw new WrongArgumentsException();
     }
     public void nicklist_remove_nick(long bufferid, long nickid) {

@@ -1,22 +1,41 @@
 package eu.rationality.thetruth;
 
+import org.jivesoftware.smack.roster.Roster;
 import org.junit.Test;
+import org.jxmpp.jid.BareJid;
+import org.jxmpp.jid.impl.JidCreate;
+import org.jxmpp.stringprep.XmppStringprepException;
+
+import static org.mockito.Mockito.mock;
+
 public class NicklistTest {
+    BareJid testBareJid = JidCreate.bareFrom("test@example.de");
+    public NicklistTest() throws XmppStringprepException {
+    }
+
+/*
+        Weechat.setAPIInstance(new WeechatTest());
+        ServerBuffer mockk = mock(ServerBuffer.class);
+        given(mockk.getNativeId()).willReturn(111L);
+        Nick nick = new Nick(mockk, testBareJid, "name",new Presence(Presence.Type.available));
+        assertNotNull(nick);
+ */
+
 
     @Test
     public void testNicklist() {
+        Weechat.setAPIInstance(new WeechatTest());
+        ServerBuffer serv = mock(ServerBuffer.class);
+        Roster rost = mock(Roster.class);
+        Nicklist nl = new Nicklist(serv, rost);
     }
 
     private Nicklist makeNicklist() {
-        return null;
-    }
-
-    @Test
-    public void testPresence() {
-    }
-
-    @Test
-    public void testAddUser() {
+        Weechat.setAPIInstance(new WeechatTest());
+        ServerBuffer serv = mock(ServerBuffer.class);
+        Roster rost = mock(Roster.class);
+        Nicklist nl = new Nicklist(serv, rost);
+        return nl;
     }
 
     @Test
@@ -53,6 +72,10 @@ public class NicklistTest {
 
     @Test
     public void testDeregisterBuffer() {
+    }
+
+    @Test
+    public void testAddUser() {
     }
 
     @Test
