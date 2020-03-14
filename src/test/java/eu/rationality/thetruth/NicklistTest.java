@@ -13,15 +13,6 @@ public class NicklistTest {
     public NicklistTest() throws XmppStringprepException {
     }
 
-/*
-        Weechat.setAPIInstance(new WeechatTest());
-        ServerBuffer mockk = mock(ServerBuffer.class);
-        given(mockk.getNativeId()).willReturn(111L);
-        Nick nick = new Nick(mockk, testBareJid, "name",new Presence(Presence.Type.available));
-        assertNotNull(nick);
- */
-
-
     @Test
     public void testNicklist() {
         Weechat.setAPIInstance(new WeechatTest());
